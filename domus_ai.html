@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Domus.ai — Plataforma de Inteligência Clínica para Atenção Domiciliar (SUS)</title>
+<style>
+  :root{
+    --primary:#18181b;
+    --primary-light:#27272a;
+    --neutral-bg:#f4f4f5;
+    --neutral-tint:#f4f4f5;
+    --border:#e4e4e7;
+    --gray-text:#71717a;
+    --green:#2f7d4f;
+    --green-bg:#e7f5ec;
+    --amber:#a15c00;
+    --amber-bg:#fdf1de;
+    --red:#a3271f;
+    --red-bg:#fbe9e7;
+    --card-bg:#ffffff;
+    --paper:#fafafa;
+    --ink:#18181b;
+    --ink-soft:#52525b;
+    --ink-faint:#a1a1aa;
+    --ad1:#3f3f46;
+    --ad1-tint:#f4f4f5;
+    --ad2:#B9701F;
+    --ad2-tint:#FBEBD7;
+    --ad3:#AD3B34;
+    --ad3-tint:#F8E4E1;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent;}
+
+  body{
+    background:#f4f4f5;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color:#18181b;
+    line-height:1.5;
+    font-size:16px;
+    padding-bottom:60px;
+  }
+
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+    padding:16px;
+  }
+
+  /* Top Platform Brand */
+  .platform-header{
+    text-align:center;
+    margin-bottom:16px;
+    background:#fff;
+    padding:22px 18px;
+    border-radius:var(--radius-lg);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow-sm);
+  }
+
+  .app-badge{
+    display:inline-block;
+    background:var(--neutral-tint);
+    color:var(--primary);
+    font-weight:700;
+    font-size:0.8rem;
+    padding:4px 14px;
+    border-radius:999px;
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    border:1px solid var(--border);
+  }
+
+  .platform-title{
+    color:var(--primary);
+    font-size:2.1rem;
+    font-weight:900;
+    letter-spacing:-0.03em;
+    margin-bottom:4px;
+  }
+
+  .platform-title span{
+    background:#18181b;
+    color:#fff;
+    font-size:1.05rem;
+    font-weight:800;
+    padding:2px 8px;
+    border-radius:6px;
+    margin-left:4px;
+    vertical-align:middle;
+  }
+
+  .platform-subtitle{
+    color:var(--gray-text);
+    font-size:0.95rem;
+    max-width:760px;
+    margin:0 auto;
+    line-height:1.5;
+  }
+
+  /* Navigation Bar */
+  .nav-tabs{
+    display:flex;
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:6px;
+    gap:6px;
+    margin-bottom:20px;
+    box-shadow:var(--shadow-sm);
+    position:sticky;
+    top:10px;
+    z-index:100;
+    overflow-x:auto;
+  }
+
+  .tab-btn{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 14px;
+    background:transparent;
+    border:none;
+    border-radius:var(--radius-sm);
+    font-family:inherit;
+    font-size:0.92rem;
+    font-weight:600;
+    color:var(--gray-text);
+    cursor:pointer;
+    transition:all .18s ease;
+    text-align:center;
+    white-space:nowrap;
+  }
+
+  .tab-btn:hover{
+    background:#f4f4f5;
+    color:var(--primary);
+  }
+
+  .tab-btn.active{
+    background:var(--primary);
+    color:#ffffff;
+    box-shadow:0 2px 4px rgba(0,0,0,0.25);
+  }
+
+  @media (max-width:768px){
+    .tab-btn{
+      font-size:0.82rem;
+      padding:10px 8px;
+      flex-direction:column;
+      gap:3px;
+    }
+  }
+
+  .subpage{
+    display:none;
+    animation:rise .25s ease both;
+  }
+
+  .subpage.active{
+    display:block;
+  }
+
+  @keyframes rise{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  section.block{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:var(--shadow-sm);
+  }
+
+  section.block > h2{
+    color:var(--primary);
+    font-size:1.18rem;
+    margin-bottom:4px;
+    border-bottom:2px solid var(--neutral-bg);
+    padding-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  section.block > p.section-sub{
+    color:var(--gray-text);
+    font-size:0.88rem;
+    margin:8px 0 16px;
+  }
+
+  .info-box{
+    background:var(--neutral-bg);
+    border:1px solid var(--border);
+    border-left:5px solid var(--primary);
+    border-radius:var(--radius-sm);
+    padding:12px 16px;
+    margin-bottom:16px;
+    font-size:0.86rem;
+    color:#3f3f46;
+    text-align:left;
+  }
+
+  .reference-box{
+    background:#fafafa;
+    border:1px solid var(--border);
+    border-left:4px solid var(--primary);
+    border-radius:var(--radius-sm);
+    padding:10px 14px;
+    margin-bottom:16px;
+    font-size:0.82rem;
+    color:#52525b;
+    text-align:left;
+  }
+
+  /* ------------------- STYLES: COLETA ACS (SUBPAGE 1) ------------------- */
+  .checklist-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:14px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    overflow:hidden;
+  }
+
+  .checklist-table th, .checklist-table td{
+    border:1px solid var(--border);
+    padding:12px;
+    font-size:0.9rem;
+    vertical-align:top;
+  }
+
+  .checklist-table th{
+    background:var(--primary);
+    color:#fff;
+    font-weight:700;
+  }
+
+  .checklist-table tr:nth-child(even) td{
+    background:#fafafa;
+  }
+
+  .obs-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:10px;
+    margin-top:12px;
+  }
+
+  .obs-item{
+    background:#fafafa;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    font-size:0.88rem;
+    cursor:pointer;
+  }
+
+  .obs-item input[type="checkbox"]{
+    margin-top:2px;
+    width:16px;
+    height:16px;
+    accent-color:var(--primary);
+  }
+
+  .summary-card{
+    background:#f0fdf4;
+    border:1.5px solid #86efac;
+    border-left:5px solid var(--green);
+    border-radius:var(--radius-md);
+    padding:16px;
+    margin-top:20px;
+  }
+
+  /* ------------------- STYLES: TRIAGEM (SUBPAGE 2) ------------------- */
+  .triagem-shell{
+    max-width:540px;
+    margin:0 auto;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    box-shadow:var(--shadow-sm);
+  }
+
+  .stage-row{ display:flex; gap:6px; margin:14px 0 6px; }
+  .stage-pill{ flex:1; height:6px; border-radius:3px; background:#e4e4e7; overflow:hidden; position:relative; }
+  .stage-pill.done{ background:var(--primary); }
+  .stage-pill.active .fill{ position:absolute; inset:0; background:var(--primary); width:var(--p,0%); transition:width .25s ease; }
+  .stage-labels{ display:flex; justify-content:space-between; font-size:10px; letter-spacing:.05em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px; font-weight:600; }
+
+  .eyebrow{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--primary); font-weight:700; margin-bottom:8px; }
+  h1.q{ font-size:22px; font-weight:700; line-height:1.3; margin-bottom:8px; color:var(--ink); }
+  p.help{ color:var(--ink-soft); font-size:14.5px; line-height:1.5; margin-bottom:22px; }
+
+  .choice-grid{ display:flex; flex-direction:column; gap:10px; }
+  .choice{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:15px; text-align:left; transition:all .15s ease; }
+  .choice:hover{ border-color:var(--primary); background:var(--neutral-tint); }
+  .choice .pt{ margin-left:auto; font-size:12px; color:var(--ink-faint); font-weight:700; }
+  .choice.selected{ border-color:var(--primary); background:var(--neutral-tint); font-weight:600; }
+  .choice.selected .pt{ color:var(--primary); }
+
+  .yn-row{ display:flex; gap:12px; margin-top:6px; }
+  .yn{ flex:1; padding:18px 10px; border-radius:10px; border:1.5px solid var(--border); background:#fff; font-size:16px; font-weight:700; cursor:pointer; transition:all .15s; }
+  .yn.yes:hover{ border-color:var(--green); background:var(--green-bg); color:var(--green); }
+  .yn.no:hover{ border-color:var(--red); background:var(--red-tint); color:var(--red); }
+
+  .check-list{ display:flex; flex-direction:column; gap:10px; }
+  .check{ display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; }
+  .check.selected{ border-color:var(--amber); background:var(--amber-tint); font-weight:500; }
+  .check .box{ flex:0 0 20px; width:20px; height:20px; border-radius:4px; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; margin-top:1px; background:#fff; }
+  .check.selected .box{ background:var(--amber); border-color:var(--amber); color:#fff; }
+
+  .stamp-wrap{ display:flex; justify-content:center; margin:16px 0 26px; }
+  .stamp{ display:inline-flex; flex-direction:column; align-items:center; padding:18px 30px; border:3px double var(--stamp-color, var(--primary)); border-radius:8px; color:var(--stamp-color, var(--primary)); transform:rotate(-2.5deg); background:#fff; }
+  .stamp .sc-label{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; }
+  .stamp .sc-code{ font-size:48px; font-weight:900; line-height:1; margin:2px 0; }
+  .stamp .sc-service{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; }
+
+  .detail-list{ display:flex; flex-direction:column; margin:20px 0 10px; }
+  .detail-row{ display:flex; justify-content:space-between; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); font-size:14px; }
+  .detail-row:first-child{ border-top:1px solid var(--border); }
+  .detail-row .k{ color:var(--ink-soft); }
+  .detail-row .v{ font-weight:700; text-align:right; max-width:65%; }
+
+  .stop-box{ background:#fff; border:1px solid var(--border); border-left:5px solid var(--red); border-radius:10px; padding:16px; margin:14px 0; font-size:14.5px; line-height:1.55; }
+  .stop-box b{ display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--red); margin-bottom:6px; font-weight:800; }
+
+  /* ------------------- STYLES: ESCORE EAD (SUBPAGE 3) ------------------- */
+  .grid-fields{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; }
+  .field label{ display:block; font-size:0.84rem; font-weight:600; color:#3f3f46; margin-bottom:5px; }
+  .field input, .field select, .field textarea{ width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.92rem; background:#fff; outline:none; font-family:inherit; }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(24,24,27,0.12); }
+
+  .domain-card{ border:1.5px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-bottom:18px; background:#ffffff; position:relative; }
+  .domain-card.incomplete{ border-color:#fca5a5; background-color:#fffafa; }
+  .domain-card h3{ margin-bottom:4px; font-size:1.02rem; color:var(--primary); display:flex; align-items:center; gap:6px; }
+  .domain-note{ font-size:0.84rem; color:var(--gray-text); font-style:italic; margin-bottom:10px; background:#f4f4f5; padding:6px 10px; border-radius:var(--radius-sm); border-left:3px solid #d4d4d8; }
+
+  .domain-hint-box{
+    background:#fffbeb;
+    border:1px solid #fde68a;
+    border-left:3px solid #d97706;
+    border-radius:4px;
+    padding:6px 10px;
+    font-size:0.8rem;
+    color:#92400e;
+    margin-bottom:12px;
+    line-height:1.4;
+  }
+
+  .options{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  @media (max-width:760px){ .options{grid-template-columns:1fr 1fr;} }
+  @media (max-width:440px){ .options{grid-template-columns:1fr;} }
+
+  .opt{ position:relative; }
+  .opt input{ position:absolute; opacity:0; width:100%; height:100%; top:0; left:0; margin:0; cursor:pointer; }
+  .opt label{ display:flex; flex-direction:column; gap:5px; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 10px; height:100%; font-size:0.84rem; cursor:pointer; background:#fff; transition:all .15s ease; }
+  .opt label .pts{ font-weight:700; color:var(--primary); font-size:0.78rem; background:#e4e4e7; padding:2px 6px; border-radius:4px; align-self:flex-start; }
+  .opt input:checked + label{ border-color:var(--primary); background:#f4f4f5; box-shadow:0 0 0 2px rgba(24,24,27,0.18); font-weight:600; }
+  .opt input:checked + label .pts{ background:var(--primary); color:#fff; }
+  .missing-flag{ display:none; color:var(--red); font-size:0.8rem; font-weight:700; margin-top:8px; }
+  .domain-card.incomplete .missing-flag{ display:block; }
+
+  .score-highlight{ text-align:center; padding:20px 14px; border-radius:var(--radius-md); background:var(--primary); color:#fff; margin-bottom:16px; transition:all .2s; }
+  .score-highlight.redflag-override{ background:#991b1b !important; }
+  .score-highlight .score-num{ font-size:2.8rem; font-weight:900; line-height:1; }
+  .score-highlight .score-label{ font-size:0.88rem; opacity:0.9; margin-top:6px; letter-spacing:0.05em; }
+
+  .classification-badge{ display:inline-block; padding:8px 22px; border-radius:999px; font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:0.04em; margin:4px 0 8px; }
+  .class-muitobaixa{background:#e3f0e6;color:#256b3f;}
+  .class-baixa{background:#f4f4f5;color:#3f3f46;border:1px solid #d4d4d8;}
+  .class-moderada{background:#fdf1de;color:#9c6100;}
+  .class-alta{background:#fbe4d8;color:#a1481c;}
+  .class-muitoalta{background:var(--red-bg);color:var(--red);}
+  .class-critico{background:#fee2e2;color:#991b1b;border:1.5px solid #ef4444;}
+
+  .result-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+  @media (max-width:600px){ .result-grid{grid-template-columns:1fr;} }
+  .result-item{ background:#fafafa; border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; }
+  .result-item.override-alert{ background:#fff5f5; border-color:#fca5a5; }
+  .result-item.override-alert .v{ color:#991b1b !important; }
+  .result-item .k{ font-size:0.78rem; color:var(--gray-text); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; font-weight:600; }
+  .result-item .v{ font-size:0.98rem; font-weight:700; color:var(--primary); }
+
+  .flowchart-container { background: #ffffff; padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 20px; }
+  .flow-step { background: #fafafa; border: 1.5px solid #d4d4d8; padding: 10px 14px; border-radius: var(--radius-sm); text-align: center; font-size: 0.88rem; font-weight: 600; max-width: 380px; margin: 0 auto; }
+  .flow-step.active { background: #f4f4f5; border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 2px #d4d4d8; }
+  .flow-arrow { text-align: center; color: #a1a1aa; font-size: 1.2rem; line-height: 1.2; margin: 4px 0; }
+  .flow-branch { display: flex; justify-content: center; gap: 14px; margin: 8px 0; flex-wrap: wrap; }
+  .flow-branch-box { flex: 1; min-width: 240px; max-width: 360px; border: 1.5px dashed #d4d4d8; border-radius: var(--radius-sm); padding: 12px; font-size: 0.83rem; background: #fafafa; text-align: left; }
+  .flow-branch-box.active { border: 1.5px solid var(--primary); background: #f4f4f5; }
+  .flow-branch-box.active-critical { border: 2px solid #dc2626 !important; background: #fef2f2 !important; color:#991b1b; }
+  .flow-reeval-box { border-radius: var(--radius-sm); padding: 10px 14px; font-size: 0.84rem; font-weight: 600; max-width: 480px; margin: 6px auto 0; text-align: center; border: 1.5px dashed #d4d4d8; }
+  .flow-reeval-box.active-piora { border:1.5px solid var(--red); background:var(--red-bg); color:#5c1712; }
+  .flow-reeval-box.active-melhora { border:1.5px solid var(--green); background:var(--green-bg); color:#1c4a2f; }
+  .flow-reeval-box.active-estavel { border:1.5px solid #71717a; background:#f4f4f5; color:#27272a; }
+
+  table.plan-table{ width:100%; border-collapse:collapse; margin-top:14px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border); }
+  table.plan-table th, table.plan-table td{ border:1px solid var(--border); padding:10px 12px; text-align:left; font-size:0.88rem; }
+  table.plan-table th{ background:var(--primary); color:#fff; font-weight:700; }
+  table.plan-table tr:nth-child(even) td{ background:#fafafa; }
+  table.plan-table tr.active-row td{ background:#f0fdf4 !important; font-weight:700; color:#14532d; }
+  table.plan-table tr.active-row-critical td{ background:#fef2f2 !important; font-weight:700; color:#991b1b !important; }
+
+  .evolution-box{ border-radius:var(--radius-sm); padding:14px 16px; margin-top:12px; font-size:0.92rem; }
+  .evolution-piora{background:var(--red-bg);border-left:5px solid var(--red);color:#5c1712;}
+  .evolution-melhora{background:var(--green-bg);border-left:5px solid var(--green);color:#1c4a2f;}
+  .evolution-estavel{background:#f4f4f5;border-left:5px solid #71717a;color:#27272a;}
+  .evolution-box strong{display:block;margin-bottom:4px;}
+
+  .alert-box{ background:var(--red-bg); border:1.5px solid #f87171; border-left:6px solid #dc2626; border-radius:var(--radius-sm); padding:14px 16px; margin:16px 0; color:#7f1d1d; font-size:0.92rem; display:none; }
+  .alert-box.show{ display:block; }
+
+  .mismatch-alert-box{
+    background:#fffbeb;
+    border:1.5px solid #fde68a;
+    border-left:5px solid #d97706;
+    border-radius:var(--radius-sm);
+    padding:14px 16px;
+    margin:14px 0;
+    color:#92400e;
+    font-size:0.88rem;
+    line-height:1.55;
+    display:none;
+  }
+  .mismatch-alert-box.show{ display:block; }
+
+  .redflag-explanation-box{
+    background:#fff5f5;
+    border:1.5px solid #feb2b2;
+    border-left:5px solid var(--red);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    margin:14px 0;
+    color:#742a2a;
+    font-size:0.86rem;
+    line-height:1.5;
+    display:none;
+  }
+  .redflag-explanation-box.show{ display:block; }
+
+  /* ------------------- STYLES: DIRETRIZES (SUBPAGE 4) ------------------- */
+  .criteria-box { background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 14px; overflow: hidden; }
+  .criteria-header { padding: 14px 18px; font-weight: 700; font-size: 0.94rem; background: #fafafa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid transparent; user-select: none; }
+  .criteria-header:hover { background: #f4f4f5; }
+  .criteria-box.open .criteria-header { border-bottom-color: var(--border); color: var(--primary); }
+  .criteria-content { padding: 16px 18px; display: none; font-size: 0.88rem; }
+  .criteria-box.open .criteria-content { display: block; }
+  .criteria-content ul, .criteria-content ol { margin-left: 18px; margin-bottom: 10px; }
+  .criteria-content li { margin-bottom: 4px; }
+
+  /* Universal Buttons */
+  .btn-row{ display:flex; flex-wrap:wrap; gap:12px; margin:20px 0 10px; }
+  button.btn, a.btn{ text-decoration:none; appearance:none; border:none; border-radius:var(--radius-sm); padding:13px 18px; font-family:inherit; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:1 1 180px; }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:hover{ background:var(--primary-light); }
+  .btn-secondary{ background:#e4e4e7; color:#27272a; }
+  .btn-secondary:hover{ background:#d4d4d8; }
+  .btn-success{ background:var(--green); color:#fff; }
+  .btn-success:hover{ background:#23613c; }
+  .btn-action{ background-color:#27272a; color:white; font-size:0.85rem; padding:8px 14px; border-radius:var(--radius-sm); border:none; cursor:pointer; font-weight:600; margin-top:10px; }
+  .btn-action:hover{ background-color:#18181b; }
+  .back-link{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-faint); background:none; border:none; cursor:pointer; padding:6px 0 16px; text-transform:uppercase; }
+  .back-link:hover{ color:var(--primary); }
+
+  #toast { position: fixed; bottom: 20px; right: 20px; background: #18181b; color: white; padding: 12px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); font-size: 0.9rem; display: none; z-index: 999; }
+  footer.rodape{ text-align:center; font-size:0.78rem; color:#a1a1aa; margin-top:30px; }
+
+  /* Impressão */
+  @media print{
+    body{background:#fff; font-size:11pt; padding:0;}
+    .wrap{max-width:100%; padding:0;}
+    .nav-tabs, .btn-row, .no-print, .progress-sticky, .criteria-header span:last-child, .back-link{display:none !important;}
+    .subpage{display:none !important;}
+    .subpage.active{display:block !important;}
+    section.block, .triagem-shell{box-shadow:none; border:1px solid #999; break-inside:avoid; margin-bottom:14px !important; padding:12px !important;}
+    .criteria-content{display:block !important;}
+    #resultadoSection, #resumoSection{display:block !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header Global da Plataforma -->
+  <header class="platform-header">
+    <div class="app-badge">Atenção Primária à Saúde &amp; Atenção Domiciliar (SUS)</div>
+    <h1 class="platform-title">Domus<span>.ai</span></h1>
+    <p class="platform-subtitle">Plataforma de inteligência clínica e suporte à decisão para triagem, estratificação e otimização das visitas domiciliares na Atenção Primária, fundamentada em escalas validadas e normativas técnicas do SUS.</p>
+  </header>
+
+  <!-- Navegação por Abas -->
+  <nav class="nav-tabs no-print">
+    <button type="button" class="tab-btn active" id="tabBtn_acs" onclick="switchTab('acs')">
+      <span>📋</span> Coleta Territorial (ACS)
+    </button>
+    <button type="button" class="tab-btn" id="tabBtn_triagem" onclick="switchTab('triagem')">
+      <span>🔍</span> Triagem de Entrada
+    </button>
+    <button type="button" class="tab-btn" id="tabBtn_score" onclick="switchTab('score')">
+      <span>📊</span> Escore EAD
+    </button>
+    <button type="button" class="tab-btn" id="tabBtn_diretrizes" onclick="switchTab('diretrizes')">
+      <span>📖</span> Diretrizes &amp; Equipe
+    </button>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- SUBPÁGINA 1: CHECKLIST DE COLETA DO ACS (MARCO ZERO)                       -->
+  <!-- ========================================================================= -->
+  <div class="subpage active" id="page_acs">
+    <section class="block">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <h2><span>📋</span> Checklist de Informações para o ACS</h2>
+        <div class="no-print">
+          <a href="https://docs.google.com/document/d/1Oj5POVwqCZaKhgMCpgzBGbVlSglxxkeE/edit?usp=drivesdk&ouid=115437973182299726514&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:8px 14px; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+            📄 Abrir Modelo de Impressão (Drive / Docs) ↗
+          </a>
+        </div>
+      </div>
+      <p class="section-sub">Coleta de dados objetivos para subsidiar a avaliação clínica e a aplicação do Escore de Acompanhamento Domiciliar (EAD).</p>
+
+      <div class="info-box">
+        <strong>💡 Como funciona:</strong> O ACS não pontua nem decide sozinho sobre a entrada na atenção domiciliar. O ACS coleta informações objetivas e observa o ambiente para repassar à equipe de Saúde da Família (Enfermeiro/Médico).
+      </div>
+
+      <div class="grid-fields" style="margin-bottom:18px;">
+        <div class="field">
+          <label for="acs_paciente">Nome / Código do Paciente:</label>
+          <input type="text" id="acs_paciente" placeholder="Nome ou prontuário">
+        </div>
+        <div class="field">
+          <label for="acs_data">Data da Coleta:</label>
+          <input type="date" id="acs_data">
+        </div>
+        <div class="field">
+          <label for="acs_nome">ACS Responsável:</label>
+          <input type="text" id="acs_nome" placeholder="Nome do ACS / Microárea">
+        </div>
+      </div>
+
+      <!-- Tabela dos 10 Itens Objetivos -->
+      <table class="checklist-table">
+        <thead>
+          <tr>
+            <th style="width:25%;">Informação a Coletar</th>
+            <th style="width:40%;">Pergunta / Observação do ACS</th>
+            <th style="width:35%;">O que Repassar à Equipe</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Mobilidade</strong></td>
+            <td>“O senhor(a) consegue sair de casa sozinho(a)?”</td>
+            <td>
+              <label style="margin-right:10px;"><input type="radio" name="acs_mob" value="Sim"> Sim</label>
+              <label style="margin-right:10px;"><input type="radio" name="acs_mob" value="Não"> Não</label>
+              <label><input type="radio" name="acs_mob" value="Só com ajuda"> Só com ajuda</label>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>2. Atividades diárias (ABVD)</strong></td>
+            <td>“Precisa de ajuda para tomar banho, se vestir, comer, usar o banheiro ou andar?”</td>
+            <td>
+              <input type="text" id="acs_abvd" placeholder="Quais atividades precisa de ajuda..." style="width:100%; padding:6px; font-size:0.88rem; border:1px solid var(--border); border-radius:4px;">
+            </td>
+          </tr>
+          <tr>
+            <td><strong>3. Intercorrências recentes</strong></td>
+            <td>“Nos últimos 30 dias, precisou ir ao pronto atendimento ou ficou internado(a)?”</td>
+            <td>
+              <label><input type="checkbox" id="acs_interc_nao"> Não teve intercorrências</label><br>
+              <div style="margin-top:6px;">
+                UPA/PS: <input type="number" id="acs_upa_vezes" placeholder="Nº vezes" min="0" style="width:75px; padding:4px; font-size:0.85rem; border:1px solid var(--border); border-radius:4px;"><br>
+                Internação: <input type="number" id="acs_hosp_vezes" placeholder="Nº vezes" min="0" style="width:75px; padding:4px; font-size:0.85rem; border:1px solid var(--border); border-radius:4px; margin-top:4px;">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>4. Sintomas atuais</strong></td>
+            <td>“Tem sentido alguma piora ou algum sintoma que está atrapalhando seu dia a dia?”</td>
+            <td>
+              <input type="text" id="acs_sintoma" placeholder="Sintoma principal..." style="width:100%; padding:6px; font-size:0.88rem; border:1px solid var(--border); border-radius:4px; margin-bottom:4px;"><br>
+              <input type="text" id="acs_sintoma_freq" placeholder="Frequência (ex.: diário, 2x/sem)..." style="width:100%; padding:6px; font-size:0.88rem; border:1px solid var(--border); border-radius:4px;">
+            </td>
+          </tr>
+          <tr>
+            <td><strong>5. Cuidados em casa</strong></td>
+            <td>“Alguém precisa fazer algum cuidado de saúde aqui na sua casa?”</td>
+            <td>
+              <label style="margin-right:8px;"><input type="checkbox" name="acs_cuidado" value="Curativo"> Curativo</label>
+              <label style="margin-right:8px;"><input type="checkbox" name="acs_cuidado" value="Sonda"> Sonda</label>
+              <label style="margin-right:8px;"><input type="checkbox" name="acs_cuidado" value="Ostomia"> Ostomia</label><br>
+              <label style="margin-right:8px;"><input type="checkbox" name="acs_cuidado" value="Oxigênio"> Oxigênio</label>
+              <label style="margin-right:8px;"><input type="checkbox" name="acs_cuidado" value="Medicação"> Medicação</label><br>
+              <input type="text" id="acs_cuidado_outro" placeholder="Outro cuidado..." style="width:100%; padding:6px; font-size:0.85rem; border:1px solid var(--border); border-radius:4px; margin-top:4px;">
+            </td>
+          </tr>
+          <tr>
+            <td><strong>6. Dispositivos</strong></td>
+            <td>“Usa algum aparelho, sonda ou dispositivo de saúde?”</td>
+            <td>
+              <input type="text" id="acs_disp" placeholder="Qual dispositivo..." style="width:100%; padding:6px; font-size:0.88rem; border:1px solid var(--border); border-radius:4px;">
+            </td>
+          </tr>
+          <tr>
+            <td><strong>7. Medicamentos</strong></td>
+            <td>“Algum medicamento foi iniciado, suspenso ou alterado recentemente?”</td>
+            <td>
+              <label style="margin-right:10px;"><input type="radio" name="acs_med_alt" value="Não"> Não</label>
+              <label><input type="radio" name="acs_med_alt" value="Sim"> Sim</label><br>
+              <input type="text" id="acs_med_qual" placeholder="Quais alterações..." style="width:100%; padding:6px; font-size:0.85rem; border:1px solid var(--border); border-radius:4px; margin-top:4px;">
+            </td>
+          </tr>
+          <tr>
+            <td><strong>8. Cuidador</strong></td>
+            <td>“Quem ajuda nos seus cuidados? Essa pessoa consegue realizar tudo o que precisa?”</td>
+            <td>
+              <input type="text" id="acs_cuidador_nome" placeholder="Nome do cuidador..." style="width:100%; padding:6px; font-size:0.88rem; border:1px solid var(--border); border-radius:4px; margin-bottom:4px;"><br>
+              <label style="margin-right:10px;"><input type="radio" name="acs_cuidador_status" value="Adequado"> Adequado</label>
+              <label><input type="radio" name="acs_cuidador_status" value="Com dificuldade"> Com dificuldade</label>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>9. Piora recente</strong></td>
+            <td>“Comparando com há um mês, você está melhor, igual ou pior?”</td>
+            <td>
+              <label style="margin-right:10px;"><input type="radio" name="acs_piora" value="Melhor"> Melhor</label>
+              <label style="margin-right:10px;"><input type="radio" name="acs_piora" value="Igual"> Igual</label>
+              <label><input type="radio" name="acs_piora" value="Pior"> Pior</label>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>10. Necessidade percebida</strong></td>
+            <td>“O que hoje você mais precisa de ajuda para conseguir fazer em casa?”</td>
+            <td>
+              <input type="text" id="acs_nec" placeholder="Principal necessidade relatada..." style="width:100%; padding:6px; font-size:0.88rem; border:1px solid var(--border); border-radius:4px;">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Itens de Observação Visual do ACS -->
+      <h3 style="color:var(--primary); font-size:1.05rem; margin-top:24px; margin-bottom:8px;">👁️ O ACS Também Deve Observar (Sem Necessidade de Diagnóstico):</h3>
+      <div class="obs-grid">
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Dificuldade importante para caminhar"> Dificuldade importante para caminhar</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Permanência prolongada no leito"> Permanência prolongada no leito / acamamento</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Dificuldade para levantar / sentar"> Dificuldade para levantar / sentar</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Necessidade evidente de auxílio para ABVD"> Necessidade evidente de auxílio para ABVD</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Presença de feridas / curativos"> Presença de feridas / curativos</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Presença de sondas ou dispositivos"> Presença de sondas, ostomias ou dispositivos</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Dificuldade aparente do cuidador"> Dificuldade aparente / cansaço do cuidador</label>
+        <label class="obs-item"><input type="checkbox" name="acs_obs" value="Condições domiciliares que dificultem"> Condições domiciliares que dificultem o cuidado</label>
+      </div>
+
+      <!-- Alerta Final do ACS -->
+      <div style="background:#fafafa; border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-top:16px;">
+        <label style="font-weight:700; color:var(--primary); display:block; margin-bottom:6px;">
+          “Há alguma situação que você considera que precisa ser avaliada prioritariamente pela equipe?”
+        </label>
+        <label style="margin-right:14px;"><input type="radio" name="acs_alerta_final" value="Não"> Não</label>
+        <label><input type="radio" name="acs_alerta_final" value="Sim"> Sim</label>
+        <input type="text" id="acs_alerta_qual" placeholder="Se sim, descreva a situação observada..." style="width:100%; padding:8px; font-size:0.9rem; border:1px solid var(--border); border-radius:4px; margin-top:8px;">
+      </div>
+
+      <!-- Botão Gerar Resumo -->
+      <div class="btn-row no-print" style="margin-top:20px;">
+        <button type="button" class="btn btn-primary" onclick="gerarResumoACS()">📝 Gerar Resumo para o Médico / Enfermeiro</button>
+        <button type="button" class="btn btn-secondary" onclick="limparChecklistACS()">🔄 Limpar Checklist</button>
+        <a href="https://docs.google.com/document/d/1Oj5POVwqCZaKhgMCpgzBGbVlSglxxkeE/edit?usp=drivesdk&ouid=115437973182299726514&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="btn btn-success">
+          📄 Modelo de Impressão do ACS (Docs) ↗
+        </a>
+      </div>
+
+      <!-- Card de Resumo Gerado para a Equipe -->
+      <div class="summary-card" id="cardResumoACS" style="display:none;">
+        <h3 style="color:var(--green); font-size:1.1rem; margin-bottom:10px;">📋 Resumo da Coleta Territorial para a Equipe da UBS</h3>
+        <div style="font-size:0.9rem; line-height:1.6; color:#14532d;" id="textoResumoACS"></div>
+        <div style="margin-top:12px; font-size:0.82rem; color:var(--gray-text); font-style:italic;">
+          Fluxo: ACS coleta dados objetivos → Médico/Enfermeiro aplica o Escore EAD → Define intensidade e plano de visitas → Reavaliação em 30 dias.
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SUBPÁGINA 2: TRIAGEM INICIAL DE ENTRADA (FILTROS + IAEC-AD)               -->
+  <!-- ========================================================================= -->
+  <div class="subpage" id="page_triagem">
+    <div class="triagem-shell">
+      <div style="border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:14px;">
+        <div class="eyebrow">Módulo de Triagem Rápida</div>
+        <h2 style="font-size:1.3rem; color:var(--primary); margin-bottom:4px;">Triagem de Elegibilidade AD</h2>
+        <div class="stage-row" id="stageRow"></div>
+        <div class="stage-labels">
+          <span>Etapa 1 · Filtros</span>
+          <span>Etapa 2 · Direta</span>
+          <span>Etapa 3 · IAEC-AD</span>
+        </div>
+      </div>
+      <div id="triagemMain"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SUBPÁGINA 3: ESCORE DE ACOMPANHAMENTO DOMICILIAR (EAD - 7 DOMÍNIOS)       -->
+  <!-- ========================================================================= -->
+  <div class="subpage" id="page_score">
+
+    <!-- Sticky Progress Bar do Escore -->
+    <div class="progress-sticky no-print">
+      <div class="progress-header">
+        <span>Progresso da Avaliação do EAD</span>
+        <span id="progressText">0 / 7 domínios preenchidos</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- DADOS DA AVALIAÇÃO -->
+    <section class="block">
+      <h2><span>📋</span> Identificação e Status do Acompanhamento</h2>
+      <p class="section-sub">Campos padronizados para registro e calibração da rotina de visitas:</p>
+      <div class="grid-fields">
+        <div class="field">
+          <label for="codigoPaciente">Código do paciente / Prontuário</label>
+          <input type="text" id="codigoPaciente" placeholder="Ex.: PAC-0231">
+        </div>
+        <div class="field">
+          <label for="dataAvaliacao">Data da avaliação</label>
+          <input type="date" id="dataAvaliacao">
+        </div>
+        <div class="field">
+          <label for="statusProtocolo">Status / Modalidade Atual Registrada</label>
+          <select id="statusProtocolo">
+            <option value="Inicio">Início de protocolo / Primeira avaliação</option>
+            <option value="AD1">Já em acompanhamento — Modalidade AD1 (Atenção Básica / eSF)</option>
+            <option value="AD2">Já em acompanhamento — Modalidade AD2 (SAD / EMAD)</option>
+            <option value="AD3">Já em acompanhamento — Modalidade AD3 (SAD / EMAD)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="origemDemanda">Origem da demanda (Captação MS)</label>
+          <select id="origemDemanda">
+            <option value="eSF">Busca ativa / Demanda territorial da eSF</option>
+            <option value="AltaHosp">Desospitalização / Alta Hospitalar</option>
+            <option value="UPA">Porta de Urgência / UPA / Pronto-Atendimento</option>
+            <option value="Esp">Ambulatório de Especialidade / Oncologia</option>
+            <option value="Espontanea">Demanda espontânea / Família</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="profissional">Profissional responsável</label>
+          <input type="text" id="profissional" placeholder="Ex.: ACS Maria / Enf. Carlos">
+        </div>
+        <div class="field">
+          <label for="pontuacaoAnterior">Pontuação anterior (0–21)</label>
+          <input type="number" id="pontuacaoAnterior" min="0" max="21" placeholder="Opcional (0–21)">
+        </div>
+      </div>
+    </section>
+
+    <!-- DOMÍNIOS (7 DOMÍNIOS - 0 A 21 PONTOS) -->
+    <section class="block">
+      <h2><span>🩺</span> Critérios e Domínios de Avaliação do EAD (0 a 21 Pontos)</h2>
+      <p class="section-sub">Avaliação longitudinal recente (últimos 30 dias). Cada domínio varia de 0 a 3 pontos:</p>
+
+      <div id="warnIncomplete" class="warn-incomplete" style="display:none; background:var(--amber-bg); border-left:5px solid var(--amber); color:#5c4004; padding:12px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:0.9rem;">
+        Preencha todos os domínios antes de calcular. Domínios pendentes: <span id="pendingList"></span>
+      </div>
+
+      <div id="domainsContainer"></div>
+    </section>
+
+    <div class="btn-row no-print">
+      <button type="button" class="btn btn-primary" id="btnCalcular">📊 Calcular resultado</button>
+      <button type="button" class="btn btn-secondary" id="btnLimpar">🔄 Limpar formulário</button>
+      <button type="button" class="btn btn-secondary" id="btnNova">📝 Nova avaliação</button>
+      <button type="button" class="btn btn-success" id="btnImprimir">🖨️ Imprimir / PDF</button>
+    </div>
+
+    <!-- RESULTADO DO SCORE -->
+    <section class="block" id="resultadoSection" style="display:none;">
+      <h2><span>📊</span> Resultado da Estratificação de Intensidade</h2>
+
+      <div class="score-highlight" id="scoreHighlightBox">
+        <div class="score-num" id="scoreNum">0 / 21</div>
+        <div class="score-label" id="scoreLabelText">PONTUAÇÃO TOTAL DO EAD</div>
+      </div>
+
+      <div style="text-align:center;">
+        <span class="classification-badge" id="classificationBadge">—</span>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-item" id="itemFreqGeral">
+          <div class="k">Frequência geral sugerida</div>
+          <div class="v" id="freqGeral">—</div>
+        </div>
+        <div class="result-item" id="itemClassDemanda">
+          <div class="k">Classificação da Demanda</div>
+          <div class="v" id="classText">—</div>
+        </div>
+      </div>
+
+      <!-- Alerta Inteligente de Divergência de Modalidade / Complexidade -->
+      <div id="mismatchAlert" class="mismatch-alert-box">
+        <strong>⚠️ INFORME DE ADEQUAÇÃO DE MODALIDADE:</strong><br>
+        <span id="mismatchAlertDesc"></span>
+      </div>
+
+      <!-- Alertas Clínicos Independentes (Red Flags) -->
+      <div id="alertClinico" class="alert-box">
+        <strong>🚨 CONDUTA CLÍNICA MODIFICADA — RED FLAG IDENTIFICADA (PONTUAÇÃO MÁXIMA = 3 PTS):</strong><br>
+        <span id="alertClinicoDesc"></span>
+      </div>
+
+      <!-- Explicação Condicional das Red Flags (Aparece SOMENTE se houver Red Flag ativa) -->
+      <div id="redFlagExplanation" class="redflag-explanation-box">
+        <strong style="color:var(--red); font-size:0.9rem; display:block; margin-bottom:4px;">
+          🚩 Tradução Clínica da(s) Red Flag(s) Identificada(s):
+        </strong>
+        <span id="redFlagExplanationText"></span>
+      </div>
+
+      <!-- FLUXOGRAMA INTERATIVO -->
+      <div class="flowchart-container" style="margin-top:20px;">
+        <h3 style="color:var(--primary); font-size:1rem; text-align:center; margin-bottom:14px;">🗺️ Fluxograma Interativo de Decisão do EAD</h3>
+
+        <div class="flow-step" id="flow_start">INÍCIO: Identificação do Usuário Elegível (Rede/Território)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step" id="flow_apply">Aplicação dos 7 Domínios do EAD (0–21 pts)</div>
+        <div class="flow-arrow">↓</div>
+        
+        <div class="flow-branch">
+          <div class="flow-branch-box" id="flow_alert_branch">
+            <strong style="color:var(--red);">HÁ RED FLAG CLÍNICA (DOMÍNIO = 3 PTS)? (SIM)</strong><br>
+            🚨 <strong>ROTA CRÍTICA ATIVA:</strong> Cronograma de rotina suspenso. Visita em até 7 dias, preferencialmente reavaliação em até 48h para acionamento de Assistência Social (CRAS), equipe Multiprofissional ou eMulti/NASF e elegibilidade para EMAD/AD2/AD3.
+          </div>
+          <div class="flow-branch-box" id="flow_standard_branch">
+            <strong style="color:var(--green);">SEM RED FLAGS CRÍTICAS (NÃO)</strong><br>
+            Quadro estável e compensado. Seguir a programação de visitas rotineira pactuada conforme a faixa de pontuação total do EAD.
+          </div>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step" id="flow_plan">Pactuação com Família / Cuidador e Elaboração do PTS</div>
+        <div class="flow-arrow">↓</div>
+        
+        <div class="flow-reeval-box" id="flow_reeval_node">
+          <span>REAVALIAÇÃO PROGRAMADA EM 30 DIAS</span><br>
+          <small id="flow_reeval_text">Aguardando dados de comparação anterior...</small>
+        </div>
+      </div>
+
+      <!-- Tabela de Plano por Profissional -->
+      <h3 style="color:var(--primary); margin-top:22px;">Plano sugerido de acompanhamento por profissional</h3>
+      <table class="plan-table" id="matrixTable">
+        <thead>
+          <tr>
+            <th>Faixa (Pontos)</th>
+            <th>Classificação</th>
+            <th>Frequência Geral</th>
+            <th>ACS</th>
+            <th>Enfermeiro</th>
+            <th>Médico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="row_muitobaixa">
+            <td><strong>0–4</strong></td>
+            <td>Muito baixa</td>
+            <td>1 visita a cada 30–60 dias</td>
+            <td>1 visita a cada 30–60 dias</td>
+            <td>Conforme necessidade / planejamento</td>
+            <td>Somente se necessário</td>
+          </tr>
+          <tr id="row_baixa">
+            <td><strong>5–8</strong></td>
+            <td>Baixa</td>
+            <td>1 visita a cada 30 dias</td>
+            <td>1 visita / mês</td>
+            <td>1 visita a cada 30–60 dias</td>
+            <td>Conforme necessidade</td>
+          </tr>
+          <tr id="row_moderada">
+            <td><strong>9–13</strong></td>
+            <td>Moderada</td>
+            <td>2 visitas / mês</td>
+            <td>1 visita a cada 15 dias</td>
+            <td>1 visita / mês</td>
+            <td>1 visita a cada 2–3 meses ou conf. nec.</td>
+          </tr>
+          <tr id="row_alta">
+            <td><strong>14–17</strong></td>
+            <td>Alta</td>
+            <td>1 visita / semana</td>
+            <td>1 visita / semana</td>
+            <td>2 visitas / mês</td>
+            <td>1 visita / mês</td>
+          </tr>
+          <tr id="row_muitoalta">
+            <td><strong>18–21</strong></td>
+            <td>Muito alta</td>
+            <td>1–2 visitas / semana</td>
+            <td>1–2 visitas / semana</td>
+            <td>1 visita / semana</td>
+            <td>1–2 visitas / mês</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.8rem; color:var(--gray-text); margin-top:8px; font-style:italic;">
+        * Metas operacionais para calibração da agenda da equipe. Se houver Red Flag ativa, a conduta prioritária de visita em até 7 dias e reavaliação em 48h sobrepõe os intervalos espaçados da tabela.
+      </p>
+
+      <!-- REAVALIAÇÃO / COMPARAÇÃO -->
+      <h3 style="color:var(--primary); margin-top:26px;">Evolução e Comparação Longitudinal</h3>
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="k">Pontuação anterior</div>
+          <div class="v" id="showAnterior">—</div>
+        </div>
+        <div class="result-item">
+          <div class="k">Pontuação atual</div>
+          <div class="v" id="showAtual">—</div>
+        </div>
+      </div>
+      <div class="result-item" style="margin-top:10px;">
+        <div class="k">Variação do Escore</div>
+        <div class="v" id="showVariacao">—</div>
+      </div>
+      <div id="evolutionBox" class="evolution-box evolution-estavel" style="display:none;">
+        <strong id="evolutionTitle"></strong>
+        <span id="evolutionConduta"></span>
+      </div>
+
+    </section>
+
+    <!-- RESUMO DO SCORE -->
+    <section class="block" id="resumoSection" style="display:none;">
+      <h2><span>📑</span> Resumo do Atendimento (Prontuário Domiciliar)</h2>
+      <div class="result-grid">
+        <div class="result-item"><div class="k">Código do paciente</div><div class="v" id="resCodigo">—</div></div>
+        <div class="result-item"><div class="k">Data da avaliação</div><div class="v" id="resData">—</div></div>
+        <div class="result-item"><div class="k">Status / Modalidade Registrada</div><div class="v" id="resStatus">—</div></div>
+        <div class="result-item"><div class="k">Origem da Captação</div><div class="v" id="resOrigem">—</div></div>
+        <div class="result-item"><div class="k">Pontuação total</div><div class="v" id="resPontuacao">—</div></div>
+        <div class="result-item"><div class="k">Classificação da Demanda</div><div class="v" id="resClassificacao">—</div></div>
+        <div class="result-item"><div class="k">Frequência geral</div><div class="v" id="resFreqGeral">—</div></div>
+        <div class="result-item"><div class="k">Frequência ACS</div><div class="v" id="resFreqACS">—</div></div>
+        <div class="result-item"><div class="k">Frequência enfermeiro</div><div class="v" id="resFreqEnf">—</div></div>
+        <div class="result-item"><div class="k">Frequência médico</div><div class="v" id="resFreqMed">—</div></div>
+        <div class="result-item"><div class="k">Pontuação anterior</div><div class="v" id="resAnterior">—</div></div>
+        <div class="result-item"><div class="k">Variação</div><div class="v" id="resVariacao">—</div></div>
+      </div>
+      <div class="result-item" style="margin-top:12px;">
+        <div class="k">Interpretação da evolução</div>
+        <div class="v" id="resInterpretacao">—</div>
+      </div>
+      <div class="result-item" style="margin-top:10px;">
+        <div class="k">Conduta sugerida</div>
+        <div class="v" id="resConduta">—</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SUBPÁGINA 4: DIRETRIZES E ORIENTAÇÕES GERAIS PARA A EQUIPE               -->
+  <!-- ========================================================================= -->
+  <div class="subpage" id="page_diretrizes">
+
+    <div class="reference-box">
+      📖 <strong>Referência Técnica Nacional:</strong> Caderno de Atenção Domiciliar (Volume 1), Ministério da Saúde (2012); Portaria GM/MS nº 2.527/2011; Guia Prático do Cuidador (MS).
+    </div>
+
+    <!-- GUIA DETALHADO DE RED FLAGS E CRITÉRIOS DE RISCO -->
+    <section class="block" style="background:#fffafa; border:1.5px solid #feb2b2; border-left:6px solid var(--red);">
+      <h2 style="color:var(--red);"><span>🚩</span> Guia Completo de Red Flags e Critérios Críticos no EAD</h2>
+      <p class="section-sub" style="color:#742a2a;">No EAD, cada domínio varia de 0 a 3 pontos. Quando um paciente atinge a <strong>pontuação máxima (3 pontos)</strong> em qualquer domínio-chave, esse resultado funciona como um sinal de alarme clínico que altera a conduta da equipe:</p>
+      
+      <div style="font-size:0.88rem; line-height:1.6; color:#5c1712;">
+        <p><strong>1. Intercorrências Clínicas (3 Pontos):</strong> Internação hospitalar recente ou $\ge 2$ atendimentos de urgência (UPA/PS) nos últimos 30 dias. <em>Tradução clínica:</em> Instabilidade aguda ativa e momento de maior vulnerabilidade a eventos adversos e reinternação precoce.</p>
+        
+        <p style="margin-top:8px;"><strong>2. Sintomas e Estabilidade (3 Pontos):</strong> Sintomas diários, persistentes, descompensados ou com necessidade de intervenção imediata. <em>Tradução clínica:</em> Sofrimento não controlado (dor refratária, dispneia, náuseas, agitação/delirium) e falha no controle terapêutico que não pode aguardar um intervalo de visitas longo.</p>
+        
+        <p style="margin-top:8px;"><strong>3. Funcionalidade / ABVD (3 Pontos):</strong> Dependência grave ($\ge 5$ atividades básicas), acamamento total ou restrição estrita ao leito. <em>Tradução clínica:</em> Risco severo de complicações secundárias da imobilidade (lesões por pressão, broncoaspiração, constipação severa, contraturas e trombose venosa profunda).</p>
+        
+        <p style="margin-top:8px;"><strong>4. Procedimentos de Cuidado (3 Pontos):</strong> Procedimentos diários complexos, múltiplas vezes ao dia (grandes úlceras, medicações parenterais, cuidados de alta densidade). <em>Tradução clínica:</em> Exige suporte multiprofissional contínuo e verificação de elegibilidade para EMAD/AD2.</p>
+        
+        <p style="margin-top:8px;"><strong>5. Dispositivos e Tecnologias (3 Pontos):</strong> Manejo frequente de dispositivos, aspiração traqueal contínua ou uso de VMNI (CPAP/BIPAP). <em>Tradução clínica:</em> Demanda tecnológica que caracteriza complexidade de modalidade AD3.</p>
+        
+        <p style="margin-top:8px;"><strong>6. Tratamento / Farmacoterapia (3 Pontos):</strong> Ajustes posológicos frequentes, descompensação terapêutica ou monitorização profissional estrita. <em>Tradução clínica:</em> Risco de toxicidade medicamentosa, interações graves ou falha de adesão.</p>
+        
+        <p style="margin-top:8px;"><strong>7. Cuidador / Suporte (3 Pontos):</strong> Ausência de cuidador ou incapacidade de realizar os cuidados essenciais. <em>Tradução clínica:</em> Colapso no pilar de sustentação do cuidado no domicílio, tornando qualquer conduta insegura sem suporte profissional imediato.</p>
+      </div>
+    </section>
+
+    <!-- ESCALAS VALIDADAS DE APOIO CLÍNICO -->
+    <section class="block">
+      <h2><span>📐</span> Escalas Clínicas Validadas de Avaliação Domiciliar</h2>
+      <p class="section-sub">Instrumentos recomendados pelas diretrizes do Ministério da Saúde para aplicação pelo Enfermeiro e Médico:</p>
+
+      <!-- KATZ -->
+      <div class="criteria-box" id="scale_katz">
+        <div class="criteria-header" onclick="toggleCriteria('scale_katz')">
+          <span>📊 Escala de Katz (Atividades Básicas de Vida Diária - ABVD)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;">Avalia a independência funcional do indivíduo em <strong>6 funções biológicas e psicomotoras básicas</strong>:</p>
+          <ul>
+            <li><strong>1. Banho:</strong> Independente (lava-se sozinho ou precisa de ajuda apenas para uma parte) vs. Dependente (necessita de auxílio para mais de uma parte ou para entrar/sair da banheira/chuveiro).</li>
+            <li><strong>2. Vestir-se:</strong> Independente (pega as roupas e veste-se completamente) vs. Dependente (precisa de ajuda para vestir-se ou permanece despido/com camisola).</li>
+            <li><strong>3. Uso do Vaso Sanitário:</strong> Independente (vai ao banheiro, limpa-se e ajeita as roupas) vs. Dependente (usa comadre/papagaio ou necessita de auxílio físico).</li>
+            <li><strong>4. Transferência:</strong> Independente (deita-se e levanta-se da cama e da cadeira sem auxílio) vs. Dependente (necessita de ajuda de outra pessoa ou é totalmente acamado).</li>
+            <li><strong>5. Continência:</strong> Independente (controle completo da micção e evacuação) vs. Dependente (incontinência parcial/total ou uso de fraldas/sonda).</li>
+            <li><strong>6. Alimentação:</strong> Independente (leva a comida do prato à boca) vs. Dependente (necessita de ajuda para comer ou uso de sonda enteral/parenteral).</li>
+          </ul>
+          <p style="font-size:0.84rem; color:var(--gray-text); margin-top:6px;"><em>Classificação:</em> Independente (6/6 pts); Dependência Moderada (3–5 pts); Dependência Grave (0–2 pts / ≥5 ABVD comprometidas — Red Flag no EAD).</p>
+        </div>
+      </div>
+
+      <!-- LAWTON -->
+      <div class="criteria-box" id="scale_lawton">
+        <div class="criteria-header" onclick="toggleCriteria('scale_lawton')">
+          <span>🏠 Escala de Lawton &amp; Brody (Atividades Instrumentais de Vida Diária - AIVD)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;">Mede a capacidade de vida independente na comunidade em <strong>8 domínios instrumentais</strong>:</p>
+          <ol>
+            <li><strong>Capacidade de usar o telefone:</strong> Opera sozinho, disca números conhecidos ou atende chamadas;</li>
+            <li><strong>Compras:</strong> Faz todas as compras de forma independente ou necessita de acompanhante;</li>
+            <li><strong>Preparo de refeições:</strong> Planeja, cozinha e serve refeições adequadas;</li>
+            <li><strong>Tarefas domésticas:</strong> Cuida da limpeza da casa e manutenção de rotina;</li>
+            <li><strong>Lavagem de roupas:</strong> Lava e estende as próprias roupas;</li>
+            <li><strong>Meio de transporte:</strong> Viaja sozinho em transporte público, táxi ou dirige;</li>
+            <li><strong>Responsabilidade sobre a própria medicação:</strong> Toma os remédios na dose e horário certos sem lembretes;</li>
+            <li><strong>Capacidade de gerenciar finanças:</strong> Paga contas, controla dinheiro e faz orçamento.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- BRADEN -->
+      <div class="criteria-box" id="scale_braden">
+        <div class="criteria-header" onclick="toggleCriteria('scale_braden')">
+          <span>🩹 Escala de Braden (Risco de Lesão por Pressão em Acamados)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;">Estratifica o risco de desenvolvimento de úlceras/lesões por pressão no domicílio a partir de <strong>6 subescalas</strong>:</p>
+          <ul>
+            <li><strong>Percepção Sensorial:</strong> Capacidade de reagir significativamente ao desconforto relacionado à pressão;</li>
+            <li><strong>Umidade:</strong> Nível de exposição da pele à umidade (suor, urina, fezes);</li>
+            <li><strong>Atividade:</strong> Grau de atividade física (acamado, confinado à cadeira, deambula ocasionalmente);</li>
+            <li><strong>Mobilidade:</strong> Capacidade de mudar e controlar a posição do corpo;</li>
+            <li><strong>Nutrição:</strong> Padrão usual de consumo alimentar e hidratação;</li>
+            <li><strong>Fricção e Cisalhamento:</strong> Grau de atrito da pele contra lençóis e superfícies ao movimentar-se.</li>
+          </ul>
+          <p style="font-size:0.84rem; color:var(--gray-text); margin-top:6px;"><em>Estratificação:</em> Escore ≤ 9 (Risco Muito Alto); 10–12 (Risco Alto); 13–14 (Risco Moderado); 15–18 (Baixo Risco); 19–23 (Sem Risco).</p>
+        </div>
+      </div>
+
+      <!-- ZARIT -->
+      <div class="criteria-box" id="scale_zarit">
+        <div class="criteria-header" onclick="toggleCriteria('scale_zarit')">
+          <span>🧘 Escala de Zarit Burden Interview (ZBI - Sobrecarga do Cuidador)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;">Avalia o impacto do cuidar na saúde física, emocional, vida social e financeira do cuidador principal (Caderno AD Vol. 1, Cap. 6):</p>
+          <ul>
+            <li>Investiga se o cuidador sente que o paciente pede mais ajuda do que precisa;</li>
+            <li>Avalia se o cuidador se sente estressado entre o cuidado e outras responsabilidades familiares/trabalho;</li>
+            <li>Identifica sentimentos de raiva, medo pelo futuro, dependência do familiar e perda de controle da própria vida;</li>
+            <li>Mede o impacto do cuidado na saúde e no bem-estar pessoal do cuidador.</li>
+          </ul>
+          <p style="font-size:0.84rem; color:var(--gray-text); margin-top:6px;"><em>Estratificação:</em> 0–20 (Sem sobrecarga); 21–40 (Sobrecarga leve a moderada); 41–60 (Sobrecarga moderada a severa); 61–88 (Sobrecarga intensa — acionar apoio social/eMulti imediatamente).</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- DIRETRIZES E CRITÉRIOS OBJETIVOS POR PROFISSIONAL -->
+    <section class="block">
+      <h2><span>👥</span> Diretrizes Operacionais por Categoria (MS 2012)</h2>
+      <p class="section-sub">Atribuições específicas e sinais de alerta para organização do cuidado no território:</p>
+
+      <!-- ACS -->
+      <div class="criteria-box" id="crit_acs">
+        <div class="criteria-header" onclick="toggleCriteria('crit_acs')">
+          <span>👁️ Critérios e Atribuições do ACS (Agente Comunitário de Saúde)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="color:var(--red); font-weight:700; margin-bottom:8px;">⚠️ O ACS NÃO realiza diagnóstico clínico nem altera condutas/prescrições médicas.</p>
+          <p style="margin-bottom:8px;">O ACS atua no acompanhamento territorial contínuo, no fortalecimento do vínculo familiar e na identificação precoce de riscos:</p>
+          <ul>
+            <li>Piora evidente do estado geral ou fraqueza súbita;</li>
+            <li>Nova dificuldade para caminhar ou perda recente da mobilidade;</li>
+            <li>Aumento visível da dependência nas atividades básicas (ABVD);</li>
+            <li>Queda recente no domicílio ou barreiras de segurança física;</li>
+            <li>Confusão mental, desorientação ou mudança súbita de comportamento;</li>
+            <li>Sobrecarga evidente, cansaço ou adoecimento do cuidador principal;</li>
+            <li>Dificuldade importante no acesso ou na administração dos medicamentos;</li>
+            <li>Ida recente a pronto-socorro / UPA ou internação hospitalar;</li>
+            <li>Surgimento ou piora de feridas, úlceras ou lesões de pele;</li>
+            <li>Paciente que passou a ficar totalmente restrito ao leito/domicílio;</li>
+            <li>Qualquer alteração relevante identificada em relação à visita domiciliar anterior.</li>
+          </ul>
+          <button type="button" class="btn-action" onclick="notifyNurse()">📢 Solicitar Avaliação da Enfermagem</button>
+        </div>
+      </div>
+
+      <!-- ENFERMEIRO -->
+      <div class="criteria-box" id="crit_enf">
+        <div class="criteria-header" onclick="toggleCriteria('crit_enf')">
+          <span>👩‍⚕️ Critérios e Atribuições do Enfermeiro (Atenção Básica / EMAD)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;"><strong>O enfermeiro realiza o planejamento do cuidado e a prescrição de enfermagem no domicílio (MS, 2012):</strong></p>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-bottom:12px;">
+            <div>
+              <strong>1. Avaliação Clínica:</strong>
+              <ul>
+                <li>Sintomas e queixas agudas</li>
+                <li>Sinais vitais e estabilidade</li>
+                <li>Risco de agravamento clínico</li>
+              </ul>
+            </div>
+            <div>
+              <strong>2. Avaliação Funcional:</strong>
+              <ul>
+                <li>Grau de dependência em ABVD</li>
+                <li>Risco de quedas e mobilidade</li>
+                <li>Rastreio de perdas cognitivas</li>
+              </ul>
+            </div>
+            <div>
+              <strong>3. Procedimentos e Dispositivos:</strong>
+              <ul>
+                <li>Integridade da pele e curativos</li>
+                <li>Manejo de sondas (SVD/SNG/GTT)</li>
+                <li>Oxigenoterapia e vias aéreas</li>
+              </ul>
+            </div>
+            <div>
+              <strong>4. Cuidador e Ambiente:</strong>
+              <ul>
+                <li>Capacidade técnica do cuidador</li>
+                <li>Avaliação de sobrecarga (Zarit)</li>
+                <li>Condições sanitárias do domicílio</li>
+              </ul>
+            </div>
+          </div>
+          <p><strong>Competências de decisão:</strong> Pactuar cronograma com a família, prescrever cuidados de enfermagem no prontuário domiciliar, acionar equipe médica ou eMulti/NASF e avaliar necessidade de migração entre AD1 e AD2.</p>
+        </div>
+      </div>
+
+      <!-- MÉDICO -->
+      <div class="criteria-box" id="crit_med">
+        <div class="criteria-header" onclick="toggleCriteria('crit_med')">
+          <span>👨‍⚕️ Critérios e Atribuições Médicas (eSF / EMAD)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;"><strong>O médico é responsável pela condução terapêutica, revisão diagnóstica e estabilização (MS, 2012):</strong></p>
+          <ol>
+            <li>Avaliação da estabilidade clínica global e definição do prognóstico;</li>
+            <li>Controle de comorbidades crônicas (HAS, DM, DCV, sequela pós-AVC, DPOC, demências);</li>
+            <li>Revisão detalhada da prescrição, polifarmácia e desprescrição segura;</li>
+            <li>Manejo de episódios de reagudização para evitar internação hospitalar desnecessária;</li>
+            <li>Solicitação e acompanhamento de exames complementares e propedêutica;</li>
+            <li>Elaboração do Projeto Terapêutico Singular (PTS) em conjunto com a equipe;</li>
+            <li>Definição e pactuação sobre a modalidade de Atenção Domiciliar (AD1 vs. encaminhamento para EMAD/AD2/AD3) ou rede de urgência/emergência.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- CUIDADOR -->
+      <div class="criteria-box" id="crit_cuidador">
+        <div class="criteria-header" onclick="toggleCriteria('crit_cuidador')">
+          <span>🏠 O Papel do Cuidador e Critérios de Suporte Familiar (MS 2012)</span>
+          <span>▼</span>
+        </div>
+        <div class="criteria-content">
+          <p style="margin-bottom:8px;"><strong>O cuidador é o elo entre a pessoa cuidada, a família e a equipe de saúde (Caderno AD Vol. 1, Cap. 6):</strong></p>
+          <ul>
+            <li><strong>Atribuições pactuadas:</strong> Auxílio na higiene, alimentação, locomoção apoiada, mudança de decúbito, administração de medicamentos prescritos por via oral (não parenterais) e comunicação de intercorrências;</li>
+            <li><strong>Limites da função:</strong> O cuidador não deve realizar procedimentos invasivos ou privativos das profissões de saúde regulamentadas;</li>
+            <li><strong>Cuidado com o Cuidador:</strong> A equipe de saúde deve monitorar sinais de sobrecarga física e emocional (recomendado uso da escala Zarit), incentivar rodízio familiar e promover grupos de apoio/oficinas pedagógicas na UBS.</li>
+          </ul>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- CRITÉRIOS DE ELEGIBILIDADE E MODALIDADES AD -->
+    <section class="block" style="background:#fafafa; border:1px solid #d4d4d8;">
+      <h3 style="color:var(--primary); font-size:1.05rem; margin-bottom:8px;">📚 Quadro de Elegibilidade das Modalidades de AD (Portaria nº 2.527/2011)</h3>
+      <div style="font-size:0.86rem; color:#3f3f46; line-height:1.6;">
+        <p><strong>• Modalidade AD1 (Atenção Básica):</strong> Usuários com problemas de saúde controlados/compensados, com dificuldade ou impossibilidade física de locomoção até a UBS, que necessitam de cuidados de menor complexidade e menor frequência (visitas habituais mensais ou espaçadas), sob responsabilidade da equipe de Saúde da Família (eSF) e eMulti.</p>
+        <p style="margin-top:6px;"><strong>• Modalidade AD2 (Serviço de Atenção Domiciliar - SAD):</strong> Usuários com problemas de saúde que demandam cuidados contínuos mais frequentes (pelo menos 1 visita semanal), tratamento de afecções agudas/reagudizadas, grandes úlceras, reabilitação intensiva ou antibioticoterapia parenteral, sob responsabilidade da EMAD/EMAP.</p>
+        <p style="margin-top:6px;"><strong>• Modalidade AD3 (Serviço de Atenção Domiciliar - SAD):</strong> Semelhante à AD2, mas com uso contínuo de suporte tecnológico/equipamentos especiais (como ventilação mecânica não invasiva - CPAP/BIPAP, oxigenoterapia contínua de alta complexidade ou aspiração traqueal frequente).</p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="rodape">
+    Domus.ai — Inteligência Clínica e Apoio à Decisão para Atenção Domiciliar (SUS).<br>
+    Execução 100% local no navegador (Offline). Respeito integral à privacidade de dados.
+  </footer>
+
+  <div id="toast">Notificação registrada com sucesso!</div>
+
+</div>
+
+<script>
+/* ========================================================================= */
+/* NAVEGAÇÃO ENTRE ABAS (SUBPÁGINAS)                                         */
+/* ========================================================================= */
+function switchTab(tabId){
+  document.querySelectorAll('.tab-btn').forEach(function(btn){ btn.classList.remove('active'); });
+  document.querySelectorAll('.subpage').forEach(function(page){ page.classList.remove('active'); });
+
+  var targetBtn = document.getElementById('tabBtn_' + tabId);
+  var targetPage = document.getElementById('page_' + tabId);
+
+  if(targetBtn) targetBtn.classList.add('active');
+  if(targetPage) targetPage.classList.add('active');
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ========================================================================= */
+/* MÓDULO 1: CHECKLIST DO ACS (MARCO ZERO)                                    */
+/* ========================================================================= */
+function gerarResumoACS(){
+  var paciente = document.getElementById('acs_paciente').value.trim() || 'Não informado';
+  var data = document.getElementById('acs_data').value || 'Não informada';
+  
+  var mob = document.querySelector('input[name="acs_mob"]:checked');
+  var mobTxt = mob ? mob.value : 'Não informado';
+  
+  var abvd = document.getElementById('acs_abvd').value.trim() || 'Nenhuma dependência descrita';
+  
+  var intercNao = document.getElementById('acs_interc_nao').checked;
+  var upaVezes = document.getElementById('acs_upa_vezes').value.trim() || '0';
+  var hospVezes = document.getElementById('acs_hosp_vezes').value.trim() || '0';
+  var intercTxt = intercNao ? 'Nenhuma intercorrência nos últimos 30 dias.' : `UPA/PS: ${upaVezes} vez(es) | Internações: ${hospVezes} vez(es)`;
+
+  var sintoma = document.getElementById('acs_sintoma').value.trim() || 'Ausente/Controlado';
+  var sintomaFreq = document.getElementById('acs_sintoma_freq').value.trim() || '—';
+
+  var cuidados = [];
+  document.querySelectorAll('input[name="acs_cuidado"]:checked').forEach(function(c){ cuidados.push(c.value); });
+  var cuidadoOutro = document.getElementById('acs_cuidado_outro').value.trim();
+  if(cuidadoOutro) cuidados.push(cuidadoOutro);
+  var cuidadosTxt = cuidados.length > 0 ? cuidados.join(', ') : 'Nenhum cuidado especial';
+
+  var disp = document.getElementById('acs_disp').value.trim() || 'Não utiliza';
+  
+  var medAlt = document.querySelector('input[name="acs_med_alt"]:checked');
+  var medQual = document.getElementById('acs_med_qual').value.trim();
+  var medTxt = (medAlt && medAlt.value === 'Sim') ? `Sim (${medQual || 'sem detalhes'})` : 'Não / Estável';
+
+  var cuidadorNome = document.getElementById('acs_cuidador_nome').value.trim() || 'Não informado';
+  var cuidadorStatus = document.querySelector('input[name="acs_cuidador_status"]:checked');
+  var cuidadorTxt = `${cuidadorNome} (${cuidadorStatus ? cuidadorStatus.value : 'Status não inf.'})`;
+
+  var piora = document.querySelector('input[name="acs_piora"]:checked');
+  var pioraTxt = piora ? piora.value : 'Estável';
+
+  var nec = document.getElementById('acs_nec').value.trim() || 'Nenhuma necessidade específica';
+
+  var obs = [];
+  document.querySelectorAll('input[name="acs_obs"]:checked').forEach(function(o){ obs.push(o.value); });
+  var obsTxt = obs.length > 0 ? obs.join('; ') : 'Sem observações adicionais de alarme.';
+
+  var alertaFinal = document.querySelector('input[name="acs_alerta_final"]:checked');
+  var alertaQual = document.getElementById('acs_alerta_qual').value.trim();
+  var alertaFinalTxt = (alertaFinal && alertaFinal.value === 'Sim') ? `🚨 SIM: ${alertaQual || 'Necessita avaliação clínica'}` : 'Não';
+
+  var resumoHtml = `
+    <strong>Paciente:</strong> ${paciente} | <strong>Data:</strong> ${data}<br>
+    <strong>• Mobilidade:</strong> ${mobTxt}<br>
+    <strong>• Dependência em ABVD:</strong> ${abvd}<br>
+    <strong>• Intercorrências (30 dias):</strong> ${intercTxt}<br>
+    <strong>• Sintomas Principais:</strong> ${sintoma} (Frequência: ${sintomaFreq})<br>
+    <strong>• Cuidados / Procedimentos:</strong> ${cuidadosTxt}<br>
+    <strong>• Dispositivos em Uso:</strong> ${disp}<br>
+    <strong>• Alteração Medicamentosa:</strong> ${medTxt}<br>
+    <strong>• Cuidador:</strong> ${cuidadorTxt}<br>
+    <strong>• Evolução Percebida:</strong> ${pioraTxt}<br>
+    <strong>• Maior Necessidade:</strong> ${nec}<br>
+    <strong>• Observações do ACS:</strong> ${obsTxt}<br>
+    <strong>• Alerta Prioritário da Visita:</strong> ${alertaFinalTxt}
+  `;
+
+  document.getElementById('textoResumoACS').innerHTML = resumoHtml;
+  var card = document.getElementById('cardResumoACS');
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  showToast('Resumo da visita territorial gerado com sucesso!');
+}
+
+function limparChecklistACS(){
+  if(confirm('Deseja realmente limpar todos os campos do Checklist do ACS?')){
+    document.getElementById('acs_paciente').value = '';
+    document.getElementById('acs_abvd').value = '';
+    document.getElementById('acs_interc_nao').checked = false;
+    document.getElementById('acs_upa_vezes').value = '';
+    document.getElementById('acs_hosp_vezes').value = '';
+    document.getElementById('acs_sintoma').value = '';
+    document.getElementById('acs_sintoma_freq').value = '';
+    document.getElementById('acs_cuidado_outro').value = '';
+    document.getElementById('acs_disp').value = '';
+    document.getElementById('acs_med_qual').value = '';
+    document.getElementById('acs_cuidador_nome').value = '';
+    document.getElementById('acs_nec').value = '';
+    document.getElementById('acs_alerta_qual').value = '';
+    
+    document.querySelectorAll('#page_acs input[type="radio"]').forEach(function(r){ r.checked = false; });
+    document.querySelectorAll('#page_acs input[type="checkbox"]').forEach(function(c){ c.checked = false; });
+    
+    document.getElementById('cardResumoACS').style.display = 'none';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+/* ========================================================================= */
+/* MÓDULO 2: TRIAGEM INICIAL (FILTROS + IAEC-AD)                             */
+/* ========================================================================= */
+(function initTriagemModule(){
+  var state = {
+    a1: { resolutiva:null, razoavel:null, adesao:null, consentimento:null, infra:null },
+    alta: {}, media: {},
+    e3: { internacao:null, urgencia:null, tempo:null, morador:null, suporte:null, crianca:null, neuro:null, banho:null, alimentacao:null, locomocao:null, poli:null }
+  };
+
+  var Q1 = [
+    { key:'resolutiva', label:'A visita domiciliar é resolutiva?', help:'O problema de saúde apresentado pode ser adequadamente resolvido no domicílio, com os recursos que a equipe efetivamente dispõe?', stop:'A necessidade do usuário provavelmente será mais bem respondida em outro ponto da rede (UBS, ambulatório de especialidade ou urgência/emergência).', action:'Encaminhar para o atendimento adequado' },
+    { key:'razoavel', label:'A visita domiciliar é razoável?', help:'A frequência de visitas estimada é compatível com a capacidade operacional da equipe, sem risco relevante à segurança do profissional?', stop:'O esforço necessário (deslocamento, tempo, recursos) não se justifica frente às alternativas disponíveis, ou há risco à segurança da equipe.', action:'Buscar melhor alternativa de atendimento' },
+    { key:'adesao', label:'Há adesão do usuário e da família?', help:'Usuário e/ou família concordam com o acompanhamento domiciliar, e há cuidador disponível quando o caso exige?', stop:'Sem adesão do usuário ou da família, o acompanhamento domiciliar não deve ser iniciado neste momento.', action:'Não realizar a visita domiciliar' },
+    { key:'consentimento', label:'O consentimento (TCLE) foi obtido?', help:'O Termo de Consentimento Livre e Esclarecido foi apresentado e assinado pelo usuário (se consciente) ou por seu representante legal/familiar?', stop:'Sem a formalização do consentimento, a admissão em Atenção Domiciliar não deve prosseguir.', action:'Não realizar a visita domiciliar' },
+    { key:'infra', label:'A infraestrutura domiciliar é adequada?', help:'Água potável, energia elétrica, meio de comunicação, acesso da equipe e espaço físico mínimo para o cuidado proposto.', stop:null, action:null }
+  ];
+
+  var ALTA_ITEMS = [
+    { key:'vm', label:'Ventilação mecânica invasiva / VMNI de alta complexidade' },
+    { key:'paracentese', label:'Paracentese de repetição' },
+    { key:'npt', label:'Nutrição parenteral' },
+    { key:'transfusao', label:'Transfusão sanguínea domiciliar' }
+  ];
+  var MEDIA_ITEMS = [
+    { key:'curativo', label:'Curativos diários complexos (grandes úlceras)' },
+    { key:'parenteral', label:'Medicação parenteral diária (IM/EV/SC, exceto insulina)' }
+  ];
+
+  var nav = [];
+
+  function go(fn, args, replace){
+    if(!replace) nav.push({fn:fn, args:args});
+    else nav[nav.length-1] = {fn:fn, args:args};
+    fn.apply(null, args||[]);
+  }
+
+  function back(){
+    if(nav.length<2) return;
+    nav.pop();
+    var prev = nav[nav.length-1];
+    prev.fn.apply(null, prev.args||[]);
+  }
+
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(html!==undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function setStage(stage, progressPct){
+    var row = document.getElementById('stageRow');
+    if(!row) return;
+    row.innerHTML = '';
+    for(var i=1;i<=3;i++){
+      var pill = el('div','stage-pill');
+      if(i < stage) pill.classList.add('done');
+      if(i === stage){
+        pill.classList.add('active');
+        var f = el('div','fill'); f.style.setProperty('--p',(progressPct||0)+'%');
+        pill.appendChild(f);
+      }
+      row.appendChild(pill);
+    }
+  }
+
+  function backLink(container, label){
+    if(nav.length<2) return;
+    var b = el('button','back-link','← ' + (label||'Voltar'));
+    b.addEventListener('click', back);
+    container.appendChild(b);
+  }
+
+  function mount(node){
+    var main = document.getElementById('triagemMain');
+    if(!main) return;
+    main.innerHTML = '';
+    var wrap = el('div','screen');
+    wrap.appendChild(node);
+    main.appendChild(wrap);
+  }
+
+  function renderIntro(){
+    setStage(1,0);
+    var w = el('div');
+    w.appendChild(el('p','eyebrow','Antes de começar'));
+    w.appendChild(el('h1','q','Triagem e Classificação de Entrada'));
+    w.appendChild(el('p','help','Responda às perguntas para verificar a elegibilidade do usuário e obter a classificação imediata (AD1, AD2 ou AD3), o serviço responsável e a frequência recomendada.'));
+    
+    var box = el('div');
+    box.style.background='#fafafa';
+    box.style.border='1px solid var(--border)';
+    box.style.borderRadius='var(--radius-sm)';
+    box.style.padding='14px 16px';
+    box.style.marginBottom='18px';
+    box.innerHTML = '<div style="font-size:11px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:6px;font-weight:700;">Etapas do Processo</div>'+
+      '<div style="font-size:14px;line-height:1.6;color:var(--ink-soft);">'+
+      '1. Cinco filtros de elegibilidade (Sim/Não)<br>'+
+      '2. Rastreamento de procedimentos de média/alta complexidade<br>'+
+      '3. Cálculo IAEC-AD (quando indicado) para definição precisa da modalidade'+
+      '</div>';
+    w.appendChild(box);
+
+    var actions = el('div','btn-row');
+    var btn = el('button','btn btn-primary','Iniciar triagem →');
+    btn.addEventListener('click', function(){ go(renderQ1, [0]); });
+    actions.appendChild(btn);
+    w.appendChild(actions);
+    mount(w);
+  }
+
+  function renderQ1(i){
+    setStage(1, Math.round((i/Q1.length)*100));
+    var q = Q1[i];
+    var w = el('div');
+    backLink(w);
+    w.appendChild(el('p','eyebrow','Etapa 1 · Filtro '+(i+1)+' de '+Q1.length));
+    w.appendChild(el('h1','q',q.label));
+    w.appendChild(el('p','help',q.help));
+
+    var row = el('div','yn-row');
+    var yesBtn = el('button','yn yes','Sim');
+    var noBtn = el('button','yn no','Não');
+    yesBtn.addEventListener('click', function(){
+      state.a1[q.key] = true;
+      advanceQ1(i);
+    });
+    noBtn.addEventListener('click', function(){
+      state.a1[q.key] = false;
+      if(q.stop){
+        go(renderStop, [q]);
+      } else {
+        advanceQ1(i);
+      }
+    });
+    row.appendChild(yesBtn); row.appendChild(noBtn);
+    w.appendChild(row);
+    mount(w);
+  }
+
+  function advanceQ1(i){
+    if(i+1 < Q1.length){
+      go(renderQ1, [i+1]);
+    } else {
+      go(renderEtapa2, ['alta']);
+    }
+  }
+
+  function renderStop(q){
+    setStage(1,100);
+    var w = el('div');
+    backLink(w);
+    w.appendChild(el('p','eyebrow','Triagem encerrada'));
+    w.appendChild(el('h1','q', q.label.replace('?','') + ': Não'));
+    var box = el('div','stop-box');
+    box.innerHTML = '<b>Orientação de fluxo</b>' + q.stop + '<div style="margin-top:10px;font-weight:700;color:var(--red);">→ ' + q.action + '</div>';
+    w.appendChild(box);
+    var actions = el('div','btn-row');
+    var restart = el('button','btn btn-primary','Reiniciar triagem');
+    restart.addEventListener('click', restartAll);
+    actions.appendChild(restart);
+    w.appendChild(actions);
+    mount(w);
+  }
+
+  function renderEtapa2(which){
+    setStage(2, which==='alta' ? 35 : 70);
+    var isAlta = which==='alta';
+    var items = isAlta ? ALTA_ITEMS : MEDIA_ITEMS;
+    var store = isAlta ? state.alta : state.media;
+    var w = el('div');
+    backLink(w);
+    w.appendChild(el('p','eyebrow','Etapa 2 · Triagem direta'));
+    w.appendChild(el('h1','q', isAlta ? 'Necessita de procedimentos de alta complexidade?' : 'Necessita de cuidados de média complexidade?'));
+    w.appendChild(el('p','help', isAlta ? 'Selecione se houver indicação. A presença de qualquer item classifica diretamente como AD3.' : 'Selecione se houver indicação. A presença de qualquer item classifica diretamente como AD2.'));
+
+    var list = el('div','check-list');
+    items.forEach(function(item){
+      var row = el('div','check');
+      if(store[item.key]) row.classList.add('selected');
+      row.innerHTML = '<span class="box">✓</span><span style="font-size:14.5px;">'+item.label+'</span>';
+      row.addEventListener('click', function(){
+        store[item.key] = !store[item.key];
+        row.classList.toggle('selected');
+      });
+      list.appendChild(row);
+    });
+    w.appendChild(list);
+
+    var actions = el('div','btn-row');
+    var cont = el('button','btn btn-primary','Continuar →');
+    cont.addEventListener('click', function(){
+      var anySelected = items.some(function(it){ return !!store[it.key]; });
+      if(anySelected){
+        go(renderResultado, [isAlta ? 'AD3-direto' : 'AD2-direto']);
+      } else if(isAlta){
+        go(renderEtapa2, ['media']);
+      } else {
+        go(renderE3, [0]);
+      }
+    });
+    actions.appendChild(cont);
+    w.appendChild(actions);
+    mount(w);
+  }
+
+  var E3 = [
+    { key:'internacao', title:'Internações hospitalares nos últimos 3 meses', help:'Considere qualquer motivo de internação.', opts:[
+      {v:0,l:'Nenhuma internação'},{v:1,l:'Ao menos 1 internação'},{v:2,l:'2 ou mais internações'},{v:4,l:'Ao menos 1 internação em UTI'} ]},
+    { key:'urgencia', title:'Procura por serviço de urgência nos últimos 3 meses', help:'SAMU, UPA ou Pronto-Socorro.', opts:[
+      {v:0,l:'Nenhuma procura'},{v:1,l:'2 vezes'},{v:2,l:'3 a 4 vezes'},{v:3,l:'5 ou mais vezes'} ]},
+    { key:'tempo', title:'Tempo de permanência hospitalar', help:'Considere a maior internação recente.', opts:[
+      {v:0,l:'Sem internação prévia'},{v:1,l:'Até 7 dias'},{v:2,l:'De 7 a 30 dias'},{v:3,l:'Mais de 30 dias'} ]},
+    { key:'morador', title:'Relação morador/cômodo do domicílio', help:'Número de moradores dividido pelo número de cômodos.', opts:[
+      {v:0,l:'Menor que 1'},{v:1,l:'Igual a 1'},{v:2,l:'Maior que 1'} ]},
+    { key:'suporte', title:'Suporte familiar / cuidador', help:'', opts:[
+      {v:0,l:'Suporte familiar adequado'},{v:1,l:'Suporte familiar inadequado'} ]},
+    { key:'crianca', title:'Faixa etária', help:'O paciente é uma criança de até 7 anos?', opts:[
+      {v:'sim',l:'Sim, até 7 anos'},{v:'nao',l:'Não — 8 anos ou mais'} ]},
+  ];
+
+  var E3_NEURO = { key:'neuro', title:'Desenvolvimento neuropsicomotor', help:'', opts:[
+    {v:0,l:'Acompanha o desenvolvimento esperado'},{v:6,l:'Não acompanha o desenvolvimento esperado'} ]};
+  var E3_ADL = [
+    { key:'banho', title:'Capacidade para tomar banho', help:'', opts:[ {v:0,l:'Independente'},{v:1,l:'Dependente parcial'},{v:2,l:'Dependente completo'} ]},
+    { key:'alimentacao', title:'Capacidade para alimentar-se', help:'', opts:[ {v:0,l:'Independente'},{v:1,l:'Dependente parcial'},{v:2,l:'Dependente completo'} ]},
+    { key:'locomocao', title:'Capacidade para locomover-se', help:'', opts:[ {v:0,l:'Independente'},{v:1,l:'Dependente parcial'},{v:2,l:'Dependente completo'} ]},
+  ];
+  var E3_POLI = { key:'poli', title:'Polifarmácia', help:'Uso de 5 ou mais medicações contínuas, diariamente.', opts:[
+    {v:0,l:'Não'},{v:1,l:'Sim'} ]};
+
+  function e3Sequence(){
+    var seq = E3.slice();
+    if(state.e3.crianca === 'sim') seq.push(E3_NEURO);
+    else if(state.e3.crianca === 'nao') seq = seq.concat(E3_ADL);
+    seq.push(E3_POLI);
+    return seq;
+  }
+
+  function renderE3(index){
+    var seq = e3Sequence();
+    if(index >= seq.length){ go(renderResultado, ['calculado']); return; }
+    var field = seq[index];
+    setStage(3, Math.round((index/seq.length)*100));
+    var w = el('div');
+    backLink(w);
+    w.appendChild(el('p','eyebrow','Etapa 3 · IAEC-AD — '+(index+1)+' de '+seq.length));
+    w.appendChild(el('h1','q', field.title));
+    if(field.help) w.appendChild(el('p','help', field.help));
+
+    var grid = el('div','choice-grid');
+    field.opts.forEach(function(opt){
+      var btn = el('button','choice');
+      var ptLabel = (typeof opt.v === 'number') ? (opt.v+(opt.v===1?' ponto':' pontos')) : '';
+      btn.innerHTML = '<span>'+opt.l+'</span>' + (ptLabel ? '<span class="pt">'+ptLabel+'</span>' : '');
+      if(state.e3[field.key] === opt.v) btn.classList.add('selected');
+      btn.addEventListener('click', function(){
+        state.e3[field.key] = opt.v;
+        go(renderE3, [index+1]);
+      });
+      grid.appendChild(btn);
+    });
+    w.appendChild(grid);
+    mount(w);
+  }
+
+  function computeScore(){
+    var e = state.e3;
+    var total = 0;
+    ['internacao','urgencia','tempo','morador','suporte','poli'].forEach(function(k){
+      if(typeof e[k] === 'number') total += e[k];
+    });
+    if(e.crianca === 'sim' && typeof e.neuro === 'number') total += e.neuro;
+    if(e.crianca === 'nao'){
+      ['banho','alimentacao','locomocao'].forEach(function(k){ if(typeof e[k]==='number') total += e[k]; });
+    }
+    return total;
+  }
+
+  function classify(total){
+    if(total >= 16) return 'AD3';
+    if(total >= 10) return 'AD2';
+    return 'AD1';
+  }
+
+  var SERVICE = {
+    AD1: { nome:'Atenção Primária à Saúde (APS / ESF / UBS)', freq:'No mínimo 1 visita por mês', desc:'Problemas de saúde controlados/compensados, menor complexidade.' },
+    AD2: { nome:'Serviço de Atenção Domiciliar — SAD Melhor em Casa (EMAD/EMAP)', freq:'No mínimo 1 visita por semana', desc:'Maior frequência de cuidado, acompanhamento contínuo até estabilização.' },
+    AD3: { nome:'Serviço de Atenção Domiciliar — SAD Melhor em Casa (EMAD/EMAP)', freq:'No mínimo 1 visita por semana (intensiva)', desc:'Cuidado multiprofissional de alta complexidade, procedimentos especiais/VMNI.' }
+  };
+
+  function renderResultado(mode){
+    setStage(3,100);
+    var w = el('div');
+    var cls, reason, total=null;
+    if(mode === 'AD3-direto'){
+      cls = 'AD3';
+      reason = 'Classificação direta: presença de procedimento de alta complexidade.';
+    } else if(mode === 'AD2-direto'){
+      cls = 'AD2';
+      reason = 'Classificação direta: presença de cuidado de média complexidade.';
+    } else {
+      total = computeScore();
+      cls = classify(total);
+      reason = 'Classificação por pontuação do instrumento IAEC-AD.';
+    }
+    var svc = SERVICE[cls];
+    var colorVar = cls==='AD1' ? 'var(--ad1)' : (cls==='AD2' ? 'var(--ad2)' : 'var(--ad3)');
+
+    w.appendChild(el('div','result-head','<p class="eyebrow" style="text-align:center;">Resultado da Triagem</p>'));
+    w.appendChild(el('p','result-sub', reason));
+
+    var stampWrap = el('div','stamp-wrap');
+    var stamp = el('div','stamp');
+    stamp.style.setProperty('--stamp-color', colorVar);
+    stamp.innerHTML = '<span class="sc-label">Classificação final</span><span class="sc-code">'+cls+'</span><span class="sc-service">'+(cls==='AD1'?'APS / ESF / UBS':'SAD · Melhor em Casa')+'</span>';
+    stampWrap.appendChild(stamp);
+    w.appendChild(stampWrap);
+
+    var details = el('div','detail-list');
+    function row(k,v){
+      var r = el('div','detail-row');
+      r.innerHTML = '<span class="k">'+k+'</span><span class="v">'+v+'</span>';
+      details.appendChild(r);
+    }
+    row('Serviço responsável', svc.nome);
+    row('Frequência recomendada', svc.freq);
+    row('Perfil clínico', svc.desc);
+    if(total!==null) row('Pontuação IAEC-AD', total + ' pontos (AD1: ≤9 | AD2: 10-15 | AD3: ≥16)');
+    w.appendChild(details);
+
+    var actions = el('div','btn-row');
+    var printBtn = el('button','btn btn-secondary','🖨️ Imprimir');
+    printBtn.addEventListener('click', function(){ window.print(); });
+    var restart = el('button','btn btn-primary','Nova triagem');
+    restart.addEventListener('click', restartAll);
+    actions.appendChild(printBtn);
+    actions.appendChild(restart);
+    w.appendChild(actions);
+
+    mount(w);
+  }
+
+  function restartAll(){
+    state = {
+      a1: { resolutiva:null, razoavel:null, adesao:null, consentimento:null, infra:null },
+      alta: {}, media: {},
+      e3: { internacao:null, urgencia:null, tempo:null, morador:null, suporte:null, crianca:null, neuro:null, banho:null, alimentacao:null, locomocao:null, poli:null }
+    };
+    nav = [];
+    go(renderIntro, []);
+  }
+
+  go(renderIntro, []);
+})();
+
+/* ========================================================================= */
+/* MÓDULO 3: ESCORE DE ACOMPANHAMENTO DOMICILIAR (EAD - 7 DOMÍNIOS)          */
+/* ========================================================================= */
+(function initScoreModule(){
+  var DOMAINS = [
+    {
+      id:"intercorrencias",
+      title:"1. Intercorrências clínicas",
+      icon:"🚑",
+      note:"Histórico recente de atendimentos não programados e agudizações nos últimos 30 dias (Caderno AD / MS).",
+      hint:"💡 <em>Atenção:</em> Pacientes com internação recente ou ≥2 atendimentos de urgência em 30 dias têm alto risco de agudização ativa (avaliar elegibilidade para EMAD/AD2).",
+      options:[
+        {v:0, t:"Nenhuma intercorrência nos últimos 30 dias."},
+        {v:1, t:"1 intercorrência sem necessidade de atendimento de urgência."},
+        {v:2, t:"≥2 intercorrências ou 1 atendimento em UPA / Pronto-Socorro."},
+        {v:3, t:"Internação hospitalar recente ou ≥2 atendimentos de urgência."}
+      ]
+    },
+    {
+      id:"sintomas",
+      title:"2. Sintomas e Estabilidade Clínica",
+      icon:"🩺",
+      note:"Avaliar grau de compensação clínica, dor ou sintomas descontrolados.",
+      hint:null,
+      options:[
+        {v:0, t:"Ausentes ou clinicamente compensados/controlados."},
+        {v:1, t:"Presentes ≤2 dias/semana, sem limitação das atividades."},
+        {v:2, t:"Presentes ≥3 dias/semana ou com limitação das atividades."},
+        {v:3, t:"Diários, persistentes ou com necessidade de intervenção imediata."}
+      ]
+    },
+    {
+      id:"funcionalidade",
+      title:"3. Funcionalidade e Autonomia (ABVD)",
+      icon:"🚶",
+      note:"Atividades Básicas: alimentação, banho, higiene pessoal, vestir-se, banheiro, continência e mobilidade.",
+      hint:null,
+      options:[
+        {v:0, t:"Independente nas ABVD e locomoção preservada."},
+        {v:1, t:"Dependência leve (1–2 ABVD) ou auxílio de dispositivo."},
+        {v:2, t:"Dependência moderada (3–4 ABVD) ou auxílio de terceiros para marcha."},
+        {v:3, t:"Dependência grave (≥5 ABVD), acamamento ou restrição total ao leito."}
+      ]
+    },
+    {
+      id:"procedimentos",
+      title:"4. Procedimentos de Cuidado",
+      icon:"🩹",
+      note:"Curativos complexos, medicações parenterais, reabilitação e cuidados específicos de enfermagem.",
+      hint:"💡 <em>Observação de Triagem:</em> Curativos diários complexos (grandes úlceras) ou medicação parenteral diária caracterizam modalidade <strong>AD2</strong>. Procedimentos como paracentese, nutrição parenteral total (NPT) ou transfusão domiciliar caracterizam <strong>AD3</strong>. Se presentes, utilize a <strong>Triagem de Entrada</strong>.",
+      options:[
+        {v:0, t:"Nenhum procedimento domiciliar complexo necessário."},
+        {v:1, t:"Procedimentos ou cuidados simples ≤2 vezes/semana."},
+        {v:2, t:"Procedimentos ou cuidados regulares ≥3 vezes/semana."},
+        {v:3, t:"Procedimentos diários, múltiplas vezes ao dia ou de maior complexidade."}
+      ]
+    },
+    {
+      id:"dispositivos",
+      title:"5. Dispositivos e Tecnologias",
+      icon:"🧪",
+      note:"Sondas (SVD/SNG/GTT), traqueostomia, ostomias, oxigenoterapia e VMNI (CPAP/BIPAP).",
+      hint:"💡 <em>Observação de Triagem:</em> O uso contínuo de Ventilação Mecânica Não Invasiva (VMNI - CPAP/BIPAP), ventilação invasiva ou aspiração traqueal frequente são critérios de modalidade <strong>AD3</strong>. Se presentes, realize a reclassificação na <strong>Triagem de Entrada</strong>.",
+      options:[
+        {v:0, t:"Não utiliza dispositivos médicos."},
+        {v:1, t:"Dispositivo de baixa complexidade com manejo estável."},
+        {v:2, t:"Utiliza dispositivo contínuo com manejo rotineiro."},
+        {v:3, t:"Necessita manejo, aspiração ou monitorização frequente do dispositivo."}
+      ]
+    },
+    {
+      id:"tratamento",
+      title:"6. Tratamento e Farmacoterapia",
+      icon:"💊",
+      note:"Polifarmácia, adesão, estabilidade posológica e ajustes terapêuticos recentes.",
+      hint:null,
+      options:[
+        {v:0, t:"Tratamento medicamentoso estável e bem adaptado."},
+        {v:1, t:"1–2 alterações terapêuticas nos últimos 30 dias."},
+        {v:2, t:"≥3 alterações terapêuticas ou dificuldade no manejo."},
+        {v:3, t:"Ajustes frequentes, descompensação ou monitorização profissional estrita."}
+      ]
+    },
+    {
+      id:"cuidador",
+      title:"7. Cuidador e Suporte Domiciliar",
+      icon:"🏠",
+      note:"Presença de cuidador apto, segurança da moradia e rede de apoio familiar (Cap. 6, MS 2012).",
+      hint:null,
+      options:[
+        {v:0, t:"Cuidador disponível, apto e rede de apoio adequada."},
+        {v:1, t:"Pequenas dificuldades no suporte ou dúvidas no cuidado."},
+        {v:2, t:"Suporte insuficiente, sobrecarga ou necessidade frequente de orientação."},
+        {v:3, t:"Ausência ou incapacidade do cuidador para os cuidados necessários."}
+      ]
+    }
+  ];
+
+  var BANDS = [
+    {min:0,  max:4,  key:"muitobaixa", label:"Muito baixa", freqGeral:"1 visita a cada 30–60 dias", acs:"1 visita a cada 30–60 dias", enf:"Conforme necessidade / planejamento", med:"Somente se necessário", rowId:"row_muitobaixa"},
+    {min:5,  max:8,  key:"baixa",      label:"Baixa",       freqGeral:"1 visita a cada 30 dias",     acs:"1 visita / mês",              enf:"1 visita a cada 30–60 dias",       med:"Conforme necessidade", rowId:"row_baixa"},
+    {min:9,  max:13, key:"moderada",   label:"Moderada",    freqGeral:"2 visitas / mês",             acs:"1 visita a cada 15 dias",   enf:"1 visita / mês",                     med:"1 visita a cada 2–3 meses ou conf. nec.", rowId:"row_moderada"},
+    {min:14, max:17, key:"alta",       label:"Alta",        freqGeral:"1 visita / semana",           acs:"1 visita / semana",         enf:"2 visitas / mês",                    med:"1 visita / mês", rowId:"row_alta"},
+    {min:18, max:21, key:"muitoalta",  label:"Muito alta",  freqGeral:"1–2 visitas / semana",        acs:"1–2 visitas / semana",      enf:"1 visita / semana",                  med:"1–2 visitas / mês", rowId:"row_muitoalta"}
+  ];
+
+  var container = document.getElementById("domainsContainer");
+
+  DOMAINS.forEach(function(dom){
+    var card = document.createElement("div");
+    card.className = "domain-card";
+    card.id = "card-" + dom.id;
+
+    var h3 = document.createElement("h3");
+    h3.innerHTML = `<span>${dom.icon}</span> ${dom.title}`;
+    card.appendChild(h3);
+
+    if (dom.note){
+      var note = document.createElement("p");
+      note.className = "domain-note";
+      note.textContent = dom.note;
+      card.appendChild(note);
+    }
+
+    if (dom.hint){
+      var hintBox = document.createElement("div");
+      hintBox.className = "domain-hint-box";
+      hintBox.innerHTML = dom.hint;
+      card.appendChild(hintBox);
+    }
+
+    var optsWrap = document.createElement("div");
+    optsWrap.className = "options";
+
+    dom.options.forEach(function(opt, idx){
+      var optDiv = document.createElement("div");
+      optDiv.className = "opt";
+
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = "dom_" + dom.id;
+      input.id = "dom_" + dom.id + "_" + idx;
+      input.value = opt.v;
+      input.addEventListener("change", function(){
+        card.classList.remove("incomplete");
+        updateProgressBar();
+      });
+
+      var label = document.createElement("label");
+      label.setAttribute("for", input.id);
+
+      var pts = document.createElement("span");
+      pts.className = "pts";
+      pts.textContent = opt.v + " pt" + (opt.v === 1 ? "" : "s");
+
+      var txt = document.createElement("span");
+      txt.textContent = opt.t;
+
+      label.appendChild(pts);
+      label.appendChild(txt);
+
+      optDiv.appendChild(input);
+      optDiv.appendChild(label);
+      optsWrap.appendChild(optDiv);
+    });
+
+    card.appendChild(optsWrap);
+
+    var missing = document.createElement("div");
+    missing.className = "missing-flag";
+    missing.textContent = "Domínio pendente de preenchimento.";
+    card.appendChild(missing);
+
+    container.appendChild(card);
+  });
+
+  function updateProgressBar(){
+    var filled = 0;
+    DOMAINS.forEach(function(dom){
+      if (document.querySelector('input[name="dom_' + dom.id + '"]:checked')) filled++;
+    });
+    var perc = (filled / DOMAINS.length) * 100;
+    document.getElementById("progressBar").style.width = perc + "%";
+    document.getElementById("progressText").textContent = filled + " / " + DOMAINS.length + " domínios preenchidos";
+  }
+
+  function getSelectedValue(domId){
+    var checked = document.querySelector('input[name="dom_' + domId + '"]:checked');
+    return checked ? parseInt(checked.value, 10) : null;
+  }
+
+  function findBand(score){
+    for (var i=0; i<BANDS.length; i++){
+      if (score >= BANDS[i].min && score <= BANDS[i].max) return BANDS[i];
+    }
+    return BANDS[BANDS.length - 1];
+  }
+
+  function badgeClass(key){
+    return "classification-badge class-" + key;
+  }
+
+  function calcular(){
+    var pending = [];
+    var values = {};
+    var incomplete = false;
+
+    DOMAINS.forEach(function(dom){
+      var val = getSelectedValue(dom.id);
+      var card = document.getElementById("card-" + dom.id);
+      if (val === null){
+        pending.push(dom.title);
+        card.classList.add("incomplete");
+        incomplete = true;
+      } else {
+        card.classList.remove("incomplete");
+        values[dom.id] = val;
+      }
+    });
+
+    var warn = document.getElementById("warnIncomplete");
+    if (incomplete){
+      document.getElementById("pendingList").textContent = pending.join("; ");
+      warn.style.display = "block";
+      document.getElementById("resultadoSection").style.display = "none";
+      document.getElementById("resumoSection").style.display = "none";
+      warn.scrollIntoView({behavior:"smooth", block:"center"});
+      return;
+    } else {
+      warn.style.display = "none";
+    }
+
+    var score = 0;
+    DOMAINS.forEach(function(dom){ score += values[dom.id]; });
+
+    var band = findBand(score);
+
+    // Identificação de Red Flags (Pontuação máxima = 3 pontos em domínios clínicos-chave)
+    var alertBox = document.getElementById("alertClinico");
+    var alertDesc = document.getElementById("alertClinicoDesc");
+    var redFlagExplanationBox = document.getElementById("redFlagExplanation");
+    var redFlagExplanationText = document.getElementById("redFlagExplanationText");
+    var scoreHighlightBox = document.getElementById("scoreHighlightBox");
+    var scoreLabelText = document.getElementById("scoreLabelText");
+    var itemFreqGeral = document.getElementById("itemFreqGeral");
+    var itemClassDemanda = document.getElementById("itemClassDemanda");
+    
+    var redFlagsEncontradas = [];
+    var redFlagsExplicacoes = [];
+
+    if (values.intercorrencias === 3){
+      redFlagsEncontradas.push("<strong>Intercorrências = 3 pts:</strong> Internação hospitalar recente ou ≥2 atendimentos de urgência em UPA/PS nos últimos 30 dias.");
+      redFlagsExplicacoes.push("• <strong>Intercorrências (3 pts):</strong> Traduz instabilidade clínica ativa e período de alto risco de reinternação precoce.");
+    }
+    if (values.sintomas === 3){
+      redFlagsEncontradas.push("<strong>Sintomas = 3 pts:</strong> Sintomas diários, persistentes ou descompensados com necessidade de intervenção imediata.");
+      redFlagsExplicacoes.push("• <strong>Sintomas (3 pts):</strong> Traduz sofrimento clínico agudo/descompensado e falha no controle terapêutico.");
+    }
+    if (values.funcionalidade === 3){
+      redFlagsEncontradas.push("<strong>Funcionalidade = 3 pts:</strong> Dependência grave (≥5 ABVD) ou acamamento estrito.");
+      redFlagsExplicacoes.push("• <strong>Funcionalidade (3 pts):</strong> Traduz alta vulnerabilidade biológica decorrente de imobilidade (risco de lesões por pressão e infecções).");
+    }
+    if (values.cuidador === 3){
+      redFlagsEncontradas.push("<strong>Cuidador = 3 pts:</strong> Ausência ou incapacidade do cuidador para realizar os cuidados necessários.");
+      redFlagsExplicacoes.push("• <strong>Cuidador (3 pts):</strong> Traduz colapso no suporte domiciliar com risco iminente de desassistência.");
+    }
+
+    var hasRedFlag = (redFlagsEncontradas.length > 0);
+
+    // MODIFICAÇÃO CONCRETA DA CONDUTA QUANDO HÁ RED FLAG (VISITA EM ATÉ 7 DIAS E REAVALIAÇÃO EM 48H):
+    var finalClassText = "";
+    var finalFreqGeral = "";
+    var finalACS = "";
+    var finalEnf = "";
+    var finalMed = "";
+    var badgeStyleClass = "";
+
+    if (hasRedFlag) {
+      finalClassText = "CRÍTICO / ALERTA PRIORITÁRIO (Red Flag Ativa)";
+      finalFreqGeral = "🚨 VISITA EM ATÉ 7 DIAS (Preferencialmente reavaliação em até 48h)";
+      finalACS = "Comunicação imediata à equipe da UBS e monitoramento territorial intensivo";
+      finalEnf = "Visita prioritária em até 7 dias (preferencialmente reavaliação em até 48h) para plano de cuidados e proposições de Assistência Social (CRAS), equipe Multiprofissional ou eMulti/NASF";
+      finalMed = "Avaliação médica prioritária para estabilização clínica, ajuste terapêutico e análise de encaminhamento para SAD (EMAD/AD2/AD3)";
+      badgeStyleClass = "classification-badge class-critico";
+
+      scoreHighlightBox.classList.add("redflag-override");
+      scoreLabelText.textContent = "ESCORE EAD (MODIFICADO POR RED FLAG ATIVA)";
+      itemFreqGeral.classList.add("override-alert");
+      itemClassDemanda.classList.add("override-alert");
+    } else {
+      finalClassText = band.label;
+      finalFreqGeral = band.freqGeral;
+      finalACS = band.acs;
+      finalEnf = band.enf;
+      finalMed = band.med;
+      badgeStyleClass = badgeClass(band.key);
+
+      scoreHighlightBox.classList.remove("redflag-override");
+      scoreLabelText.textContent = "PONTUAÇÃO TOTAL DO EAD";
+      itemFreqGeral.classList.remove("override-alert");
+      itemClassDemanda.classList.remove("override-alert");
+    }
+
+    document.getElementById("scoreNum").textContent = score + " / 21";
+    var badge = document.getElementById("classificationBadge");
+    badge.className = badgeStyleClass;
+    badge.textContent = finalClassText;
+    document.getElementById("classText").textContent = finalClassText;
+    document.getElementById("freqGeral").textContent = finalFreqGeral;
+
+    // Destacar linha na tabela de planos
+    document.querySelectorAll("#matrixTable tbody tr").forEach(function(tr){
+      tr.classList.remove("active-row", "active-row-critical");
+    });
+    var activeRow = document.getElementById(band.rowId);
+    if (activeRow) {
+      if (hasRedFlag) {
+        activeRow.classList.add("active-row-critical");
+      } else {
+        activeRow.classList.add("active-row");
+      }
+    }
+
+    // Gerenciar avisos e fluxograma
+    var flowAlertBranch = document.getElementById("flow_alert_branch");
+    var flowStdBranch = document.getElementById("flow_standard_branch");
+
+    if (hasRedFlag){
+      alertDesc.innerHTML = "• " + redFlagsEncontradas.join("<br>• ") + "<br><br><strong>CONDUTA CLÍNICA MODIFICADA:</strong> O cronograma habitual espaçado (" + band.freqGeral + ") foi <u>suspenso</u>. O paciente foi direcionado para a <strong>Rota Crítica</strong>, exigindo <strong>visita em até 7 dias</strong> e <strong>preferencialmente reavaliação em até 48h</strong> para identificar proposições de <strong>Assistência Social (CRAS), equipe Multiprofissional ou eMulti/NASF</strong>, além de verificar elegibilidade para EMAD/AD2/AD3.";
+      alertBox.classList.add("show");
+      
+      redFlagExplanationText.innerHTML = redFlagsExplicacoes.join("<br>");
+      redFlagExplanationBox.classList.add("show");
+
+      flowAlertBranch.classList.add("active-critical");
+      flowAlertBranch.classList.add("active");
+      flowStdBranch.classList.remove("active");
+    } else {
+      alertBox.classList.remove("show");
+      redFlagExplanationBox.classList.remove("show");
+      flowStdBranch.classList.add("active");
+      flowAlertBranch.classList.remove("active", "active-critical");
+    }
+
+    // Detecção Inteligente de Incompatibilidade de Modalidade / Complexidade Elevada
+    var statusSel = document.getElementById("statusProtocolo");
+    var currentStatus = statusSel.value;
+    var mismatchBox = document.getElementById("mismatchAlert");
+    var mismatchDesc = document.getElementById("mismatchAlertDesc");
+    var mismatchReasons = [];
+
+    var highComplexityProc = (values.procedimentos === 3);
+    var highComplexityDisp = (values.dispositivos === 3);
+    var highComplexityScore = (score >= 14);
+
+    if (currentStatus === "AD1" && (highComplexityProc || highComplexityDisp || highComplexityScore)) {
+      mismatchReasons.push("O paciente está registrado como <strong>AD1 (Atenção Básica)</strong>, mas apresenta critérios de média/alta complexidade no EAD (procedimentos diários, dispositivos complexos ou escore ≥14).");
+    } else if (currentStatus === "Inicio" && (highComplexityProc || highComplexityDisp || highComplexityScore)) {
+      mismatchReasons.push("Avaliação inicial sinaliza perfil assistencial de média/alta intensidade (pontuação elevada ou procedimentos/dispositivos complexos).");
+    }
+
+    if (mismatchReasons.length > 0) {
+      mismatchDesc.innerHTML = mismatchReasons.join("<br>") + "<br>👉 <strong>Recomendação:</strong> Acesse a aba <strong>'🔍 Triagem de Entrada'</strong> para aplicar os filtros de elegibilidade e o instrumento IAEC-AD para verificar a indicação formal de encaminhamento ao <strong>SAD (EMAD/EMAP - AD2/AD3)</strong>.";
+      mismatchBox.classList.add("show");
+    } else {
+      mismatchBox.classList.remove("show");
+    }
+
+    var prevInput = document.getElementById("pontuacaoAnterior");
+    var prevRaw = prevInput.value.trim();
+    var evolutionBox = document.getElementById("evolutionBox");
+    var evolutionTitle = document.getElementById("evolutionTitle");
+    var evolutionConduta = document.getElementById("evolutionConduta");
+    var flowReevalNode = document.getElementById("flow_reeval_node");
+    var flowReevalText = document.getElementById("flow_reeval_text");
+
+    var interpretacaoTxt = "Primeira avaliação registrada (sem score anterior informado).";
+    var condutaTxt = hasRedFlag ? "Priorizar visita em até 7 dias (preferencialmente reavaliação em até 48h para identificar proposições de Assistência Social (CRAS), equipe Multiprofissional ou eMulti/NASF) e reestruturar PTS." : "Iniciar plano de acompanhamento com a frequência sugerida e pactuar com a família.";
+    var variacaoTxt = "—";
+    var anteriorTxt = "—";
+
+    flowReevalNode.className = "flow-reeval-box";
+
+    if (prevRaw !== ""){
+      var prev = parseInt(prevRaw, 10);
+      if (!isNaN(prev)){
+        var variacao = score - prev;
+        anteriorTxt = prev + " / 21";
+        variacaoTxt = (variacao > 0 ? "+" : "") + variacao;
+
+        document.getElementById("showAnterior").textContent = anteriorTxt;
+        document.getElementById("showAtual").textContent = score + " / 21";
+        document.getElementById("showVariacao").textContent = variacaoTxt;
+
+        evolutionBox.style.display = "block";
+        evolutionBox.classList.remove("evolution-piora","evolution-melhora","evolution-estavel");
+
+        if (variacao >= 4){
+          evolutionBox.classList.add("evolution-piora");
+          flowReevalNode.classList.add("active-piora");
+          interpretacaoTxt = `⚠️ TENDÊNCIA DE PIORA (Aumento de ${variacaoTxt} pontos). Aumento da necessidade assistencial.`;
+          condutaTxt = "Considerar aumento da frequência das visitas, avaliação clínica médica/enfermagem imediata e readequação do plano de cuidados.";
+          flowReevalText.textContent = `Piora (+${variacao} pts): Intensificar visitas e acionar avaliação clínica.`;
+        } else if (variacao <= -4){
+          evolutionBox.classList.add("evolution-melhora");
+          flowReevalNode.classList.add("active-melhora");
+          interpretacaoTxt = `✅ TENDÊNCIA DE MELHORA (Redução de ${variacaoTxt} pontos). Estabilização do quadro clínico.`;
+          condutaTxt = hasRedFlag ? "Apesar da redução na pontuação, a Red Flag ativa exige visita em até 7 dias e reavaliação em até 48h antes de espaçar visitas." : "Considerar redução de um nível na frequência das visitas, desde que clinicamente seguro e pactuado em equipe.";
+          flowReevalText.textContent = `Melhora (${variacao} pts): Avaliar espaçamento seguro de visitas.`;
+        } else {
+          evolutionBox.classList.add("evolution-estavel");
+          flowReevalNode.classList.add("active-estavel");
+          interpretacaoTxt = `➡️ QUADRO ESTÁVEL (Variação de ${variacaoTxt} pontos). Sem mudança significativa.`;
+          condutaTxt = hasRedFlag ? "Quadro pontual estável, mas a Red Flag ativa requer visita em até 7 dias (reavaliação em 48h)." : "Manter a frequência atual e continuar o acompanhamento territorial e suporte ao cuidador.";
+          flowReevalText.textContent = `Estável (${variacaoTxt} pts): Manter plano terapêutico singular atual.`;
+        }
+        evolutionTitle.textContent = interpretacaoTxt;
+        evolutionConduta.textContent = condutaTxt;
+      }
+    } else {
+      document.getElementById("showAnterior").textContent = "—";
+      document.getElementById("showAtual").textContent = score + " / 21";
+      document.getElementById("showVariacao").textContent = "—";
+      evolutionBox.style.display = "none";
+      flowReevalText.textContent = "Primeira avaliação registrada. Reavaliar em 30 dias para análise comparativa longitudinal.";
+    }
+
+    var codigo = document.getElementById("codigoPaciente").value.trim() || "—";
+    var data = document.getElementById("dataAvaliacao").value || "—";
+    var statusTxt = statusSel.options[statusSel.selectedIndex].text;
+    var origemSel = document.getElementById("origemDemanda");
+    var origemTxt = origemSel.options[origemSel.selectedIndex].text;
+
+    document.getElementById("resCodigo").textContent = codigo;
+    document.getElementById("resData").textContent = data;
+    document.getElementById("resStatus").textContent = statusTxt;
+    document.getElementById("resOrigem").textContent = origemTxt;
+    document.getElementById("resPontuacao").textContent = score + " / 21";
+    document.getElementById("resClassificacao").textContent = finalClassText;
+    document.getElementById("resFreqGeral").textContent = finalFreqGeral;
+    document.getElementById("resFreqACS").textContent = finalACS;
+    document.getElementById("resFreqEnf").textContent = finalEnf;
+    document.getElementById("resFreqMed").textContent = finalMed;
+    document.getElementById("resAnterior").textContent = anteriorTxt;
+    document.getElementById("resVariacao").textContent = variacaoTxt;
+    document.getElementById("resInterpretacao").textContent = interpretacaoTxt;
+    document.getElementById("resConduta").textContent = condutaTxt;
+
+    document.getElementById("resultadoSection").style.display = "block";
+    document.getElementById("resumoSection").style.display = "block";
+    document.getElementById("resultadoSection").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  function limparFormulario(){
+    if (confirm("Deseja realmente limpar todos os campos do EAD?")){
+      document.querySelectorAll('#page_score input[type="radio"]').forEach(function(r){ r.checked = false; });
+      document.getElementById("codigoPaciente").value = "";
+      document.getElementById("dataAvaliacao").value = "";
+      document.getElementById("profissional").value = "";
+      document.getElementById("pontuacaoAnterior").value = "";
+      document.querySelectorAll(".domain-card").forEach(function(c){ c.classList.remove("incomplete"); });
+      document.getElementById("warnIncomplete").style.display = "none";
+      document.getElementById("resultadoSection").style.display = "none";
+      document.getElementById("resumoSection").style.display = "none";
+      document.getElementById("mismatchAlert").classList.remove("show");
+      document.getElementById("redFlagExplanation").classList.remove("show");
+      updateProgressBar();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+  }
+
+  function novaAvaliacao(){
+    var scoreAtualTxt = document.getElementById("scoreNum").textContent;
+    var match = scoreAtualTxt.match(/(\d+)\s*\/\s*21/);
+    document.querySelectorAll('#page_score input[type="radio"]').forEach(function(r){ r.checked = false; });
+    document.querySelectorAll(".domain-card").forEach(function(c){ c.classList.remove("incomplete"); });
+    document.getElementById("warnIncomplete").style.display = "none";
+    document.getElementById("resultadoSection").style.display = "none";
+    document.getElementById("resumoSection").style.display = "none";
+    document.getElementById("mismatchAlert").classList.remove("show");
+    document.getElementById("redFlagExplanation").classList.remove("show");
+    
+    if (match){
+      document.getElementById("pontuacaoAnterior").value = match[1];
+    }
+    
+    var today = new Date().toISOString().split("T")[0];
+    document.getElementById("dataAvaliacao").value = today;
+    
+    updateProgressBar();
+    window.scrollTo({top:0, behavior:"smooth"});
+    showToast("Nova avaliação iniciada! Escore anterior preservado.");
+  }
+
+  document.getElementById("btnCalcular").addEventListener("click", calcular);
+  document.getElementById("btnLimpar").addEventListener("click", limparFormulario);
+  document.getElementById("btnNova").addEventListener("click", novaAvaliacao);
+  document.getElementById("btnImprimir").addEventListener("click", function(){ window.print(); });
+
+  var today = new Date().toISOString().split("T")[0];
+  var dateInput = document.getElementById("dataAvaliacao");
+  if (dateInput) dateInput.value = today;
+  
+  var acsDate = document.getElementById("acs_data");
+  if (acsDate) acsDate.value = today;
+
+  updateProgressBar();
+})();
+
+/* ========================================================================= */
+/* MÓDULO 4: DIRETRIZES & EQUIPE                                             */
+/* ========================================================================= */
+window.toggleCriteria = function(id){
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle("open");
+};
+
+window.notifyNurse = function(){
+  showToast("📢 Notificação de avaliação prioritária da enfermagem registrada!");
+};
+
+function showToast(msg){
+  var toast = document.getElementById("toast");
+  if (toast){
+    toast.textContent = msg;
+    toast.style.display = "block";
+    setTimeout(function(){ toast.style.display = "none"; }, 3500);
+  }
+}
+</script>
+</body>
+</html>
