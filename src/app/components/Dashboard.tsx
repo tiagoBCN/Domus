@@ -1,6 +1,6 @@
 import React from 'react';
 import { DashboardProps } from '../types/dashboardProps';
-import { HistoricoEAD, HistoricoACS } from '../types';
+import { EADData, HistoricoACS } from '../types/triagens';
 import { ClipboardList, Search, BarChart3 } from 'lucide-react';
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -116,7 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="space-y-3">
                 <h4 className="text-[10px] font-black text-[#be80ff] uppercase tracking-wider">Histórico Escore EAD</h4>
                 {activePaciente.historicoEAD.length > 0 ? (
-                  activePaciente.historicoEAD.map((ead: HistoricoEAD, idx: number) => (
+                  activePaciente.historicoEAD.map((ead: EADData, idx: number) => (
                     <div key={idx} className="p-3 bg-[#fffbfc] border border-[#fff5f8] rounded-xl text-xs flex justify-between items-center">
                       <div>
                         <span className="font-extrabold text-[#ff75a0]">{ead.classificacao}</span>

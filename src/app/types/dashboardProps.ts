@@ -1,5 +1,7 @@
-// src/app/types/dashboardProps.ts
-/** Props for the Dashboard component */
+
+
+import { Paciente } from "./triagens";
+
 export interface DashboardProps {
   pacientes: Paciente[];
   selectedPacienteId: string;
