@@ -1,164 +1,168 @@
 import React from 'react';
-import { DashboardProps } from '../types/dashboardProps';
-import { EADData, HistoricoACS } from '../types/triagens';
-import { ClipboardList, Search, BarChart3 } from 'lucide-react';
+import { ClipboardList, Search, BarChart3, Play, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { EADData, HistoricoACS, TriagemData } from '../types/triagens';
+
+interface DashboardProps {
+  onStartViaUnica: () => void;
+  onOpenModule: (module: 'acs' | 'triagem' | 'ead') => void;
+  lastSessionData?: {
+    pacienteNome: string;
+    prontuario: string;
+    acsData?: HistoricoACS;
+    triagemData?: TriagemData;
+    eadData?: EADData;
+  } | null;
+}
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  pacientes,
-  selectedPacienteId,
-  setSelectedPacienteId,
-  activeModal,
-  setActiveModal,
-  handleAcsClear,
-  handleTriagemStart,
-  handleEadClear,
-  activePaciente,
-  setEadForm,
-  setAcsForm,
-  setShowGuidelines,
+  onStartViaUnica,
+  onOpenModule,
+  lastSessionData,
 }) => {
   return (
-    <>
-      {/* Quick Cards dos 3 Formulários (Open in Modal) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button
-          onClick={() => { handleAcsClear(); setActiveModal('acs'); }}
-          className="bg-white border border-[#ffe3ec] p-6 rounded-2xl text-left hover:border-[#ff75a0] transition-all flex flex-col justify-between h-36 relative group cursor-pointer"
-        >
-          <div className="flex justify-between items-start w-full">
-            <div className="w-10 h-10 rounded-xl bg-[#fff0f5] flex items-center justify-center text-[#ff75a0]">
-              <ClipboardList size={20} />
-            </div>
-            <span className="text-[10px] font-extrabold text-[#be80ff] uppercase tracking-wider">Módulo 1</span>
-          </div>
-          <div>
-            <h3 className="text-md font-black text-[#2d1822]">Coleta Territorial ACS</h3>
-            <p className="text-[11px] text-gray-400 mt-1">Checklist de 10 perguntas de campo.</p>
-          </div>
-        </button>
+    <div className="space-y-8">
+      {/* Hero Banner: Iniciar Atendimento Via Única */}
+      <div className="bg-zinc-900 text-white rounded-3xl p-8 shadow-md relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-2 max-w-2xl z-10">
+          <h2 className="text-2xl font-black tracking-tight text-white">
+          Triagem Clínica
+          </h2>
+        </div>
 
         <button
-          onClick={() => { handleTriagemStart(); setActiveModal('triagem'); }}
-          className="bg-white border border-[#ffe3ec] p-6 rounded-2xl text-left hover:border-[#ff75a0] transition-all flex flex-col justify-between h-36 relative group cursor-pointer"
+          onClick={onStartViaUnica}
+          className="z-10 px-6 py-4 bg-white text-zinc-900 rounded-2xl font-black text-sm hover:bg-zinc-100 transition-all flex items-center gap-3 shrink-0 shadow-lg group cursor-pointer"
         >
-          <div className="flex justify-between items-start w-full">
-            <div className="w-10 h-10 rounded-xl bg-[#fff0f5] flex items-center justify-center text-[#ff75a0]">
-              <Search size={20} />
-            </div>
-            <span className="text-[10px] font-extrabold text-[#be80ff] uppercase tracking-wider">Módulo 2</span>
-          </div>
-          <div>
-            <h3 className="text-md font-black text-[#2d1822]">Triagem de Entrada</h3>
-            <p className="text-[11px] text-gray-400 mt-1">Elegibilidade básica e IAEC-AD.</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => { handleEadClear(); setActiveModal('ead'); }}
-          className="bg-white border border-[#ffe3ec] p-6 rounded-2xl text-left hover:border-[#ff75a0] transition-all flex flex-col justify-between h-36 relative group cursor-pointer"
-        >
-          <div className="flex justify-between items-start w-full">
-            <div className="w-10 h-10 rounded-xl bg-[#fff0f5] flex items-center justify-center text-[#ff75a0]">
-              <BarChart3 size={20} />
-            </div>
-            <span className="text-[10px] font-extrabold text-[#be80ff] uppercase tracking-wider">Módulo 3</span>
-          </div>
-          <div>
-            <h3 className="text-md font-black text-[#2d1822]">Escore EAD</h3>
-            <p className="text-[11px] text-gray-400 mt-1">Pontuação de 7 domínios e Red Flags.</p>
-          </div>
+          <Play size={18} className="fill-zinc-900 group-hover:scale-110 transition-transform" />
+          <span>Iniciar Nova Triagem</span>
         </button>
       </div>
 
-      {/* List & Patient History Container (Subtle & minimalist design) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8" id="pacientes-section">
-        {/* Pacientes cadastrados */}
-        <div className="bg-white border border-[#ffeef4] rounded-2xl p-4 space-y-4 flex flex-col max-h-[600px]">
-          <div className="flex justify-between items-center pb-2 border-b border-[#fff0f5] shrink-0">
-            <h3 className="text-xs font-black uppercase text-[#ff75a0] tracking-wider">Fichas de Pacientes</h3>
-          </div>
-          <div className="space-y-1.5 overflow-y-auto flex-1 pr-1">
-            {pacientes.map(p => {
-              const active = p.id === selectedPacienteId;
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => setSelectedPacienteId(p.id)}
-                  className={`p-3 rounded-xl cursor-pointer text-xs transition-all ${
-                    active ? "bg-[#fff0f6] font-bold text-[#ff75a0]" : "hover:bg-[#fffbfc]"
-                  }`}
-                >
-                  <div className="flex justify-between">
-                    <span>{p.nome}</span>
-                    <span className="text-[10px] text-gray-400 font-normal">{p.id}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Grid de Acesso Direto aos 3 Módulos */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">
+            Módulos de Avaliação
+          </h3>
+          <span className="text-xs text-zinc-500 font-medium">3 etapas encadeadas</span>
         </div>
 
-        {/* Histórico do Paciente Selecionado */}
-        <div className="md:col-span-2 bg-white border border-[#ffeef4] rounded-2xl p-6 space-y-6">
-          {activePaciente ? (
-            <>
-              <div className="flex justify-between items-start pb-4 border-b border-[#fff5f8]">
-                <div>
-                  <h2 className="text-lg font-black">{activePaciente.nome}</h2>
-                  <p className="text-[11px] text-gray-400">Prontuário: {activePaciente.prontuario} | Cadastro: {activePaciente.dataCriacao}</p>
-                </div>
-                <span className="text-[10px] font-black uppercase text-[#ff75a0] bg-[#fff0f5] px-2.5 py-1 rounded-md">
-                  {activePaciente.statusProtocolo}
-                </span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Módulo 1 */}
+          <button
+            onClick={() => onOpenModule('acs')}
+            className="bg-white border border-zinc-200 p-6 rounded-2xl text-left hover:border-zinc-400 hover:shadow-sm transition-all flex flex-col justify-between h-40 relative group cursor-pointer"
+          >
+            <div className="flex justify-between items-start w-full">
+              <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                <ClipboardList size={20} />
               </div>
+              <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider">Módulo 1</span>
+            </div>
+            <div>
+              <h4 className="text-md font-black text-zinc-900">Coleta Territorial ACS</h4>
+              <p className="text-[11px] text-zinc-500 mt-1">10 perguntas de campo sobre mobilidade, intercorrências e cuidador.</p>
+            </div>
+          </button>
 
-              {/* Escore EAD */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-[#be80ff] uppercase tracking-wider">Histórico Escore EAD</h4>
-                {activePaciente.historicoEAD.length > 0 ? (
-                  activePaciente.historicoEAD.map((ead: EADData, idx: number) => (
-                    <div key={idx} className="p-3 bg-[#fffbfc] border border-[#fff5f8] rounded-xl text-xs flex justify-between items-center">
-                      <div>
-                        <span className="font-extrabold text-[#ff75a0]">{ead.classificacao}</span>
-                        <span className="text-[10px] text-gray-400 block mt-0.5">Visitas: {ead.freqGeral}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-black text-sm">{ead.scoreTotal}/21</span>
-                        <span className="text-[9px] text-gray-400 block">{ead.dataAvaliacao}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-400 italic">Nenhum score EAD registrado.</p>
-                )}
+          {/* Módulo 2 */}
+          <button
+            onClick={() => onOpenModule('triagem')}
+            className="bg-white border border-zinc-200 p-6 rounded-2xl text-left hover:border-zinc-400 hover:shadow-sm transition-all flex flex-col justify-between h-40 relative group cursor-pointer"
+          >
+            <div className="flex justify-between items-start w-full">
+              <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                <Search size={20} />
               </div>
+              <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider">Módulo 2</span>
+            </div>
+            <div>
+              <h4 className="text-md font-black text-zinc-900">Triagem de Entrada</h4>
+              <p className="text-[11px] text-zinc-500 mt-1">Elegibilidade preliminar, procedimentos especiais e pontuação IAEC-AD.</p>
+            </div>
+          </button>
 
-              {/* Coletas ACS */}
-              <div className="space-y-3 pt-4 border-t border-[#fff5f8]">
-                <h4 className="text-[10px] font-black text-[#be80ff] uppercase tracking-wider">Checklists ACS</h4>
-                {activePaciente.historicoACS.length > 0 ? (
-                  activePaciente.historicoACS.map((acs: HistoricoACS, idx: number) => (
-                    <div key={idx} className="p-3 bg-[#fffbfc] border border-[#fff5f8] rounded-xl text-xs space-y-1">
-                      <div className="flex justify-between font-bold">
-                        <span>Coletor: {acs.acsNome || 'ACS'}</span>
-                        <span className="text-[10px] text-gray-400">{acs.dataColeta}</span>
-                      </div>
-                      <p className="text-gray-500 text-[11px]">{acs.abvd || 'ABVD estável'}</p>
-                      {acs.alertaFinal === 'Sim' && (
-                        <p className="text-[10px] font-bold text-red-500">🚨 Alerta: {acs.alertaQual}</p>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-400 italic">Nenhuma coleta do ACS registrada.</p>
-                )}
+          {/* Módulo 3 */}
+          <button
+            onClick={() => onOpenModule('ead')}
+            className="bg-white border border-zinc-200 p-6 rounded-2xl text-left hover:border-zinc-400 hover:shadow-sm transition-all flex flex-col justify-between h-40 relative group cursor-pointer"
+          >
+            <div className="flex justify-between items-start w-full">
+              <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                <BarChart3 size={20} />
               </div>
-            </>
-          ) : (
-            <p className="text-xs text-gray-400 italic text-center py-12">Selecione um paciente para ver o histórico.</p>
-          )}
+              <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider">Módulo 3</span>
+            </div>
+            <div>
+              <h4 className="text-md font-black text-zinc-900">Escore EAD</h4>
+              <p className="text-[11px] text-zinc-500 mt-1">Estratificação clínica em 7 domínios e detecção de Red Flags.</p>
+            </div>
+          </button>
         </div>
       </div>
-    </>
+
+      {/* Resumo da Última Sessão Realizada (Se houver) */}
+      {lastSessionData && (
+        <div className="bg-white border border-zinc-900 rounded-3xl p-6 space-y-4 shadow-sm">
+          <div className="flex justify-between items-center pb-3 border-b border-zinc-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={18} className="text-zinc-900" />
+              <h3 className="text-sm font-black text-zinc-900 uppercase">
+                Última Avaliação Concluída
+              </h3>
+            </div>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase bg-zinc-100 px-2.5 py-1 rounded-md">
+              Sessão Atual
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase block">Paciente</span>
+              <span className="font-black text-zinc-900 text-sm">{lastSessionData.pacienteNome}</span>
+              <span className="text-[10px] text-zinc-400 block mt-0.5">Prontuário: {lastSessionData.prontuario || '—'}</span>
+            </div>
+
+            {lastSessionData.triagemData && (
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase block">Resultado Triagem</span>
+                <span className="font-extrabold text-zinc-900">{lastSessionData.triagemData.classificacaoFinal} — {lastSessionData.triagemData.servicoResponsavel}</span>
+                <span className="text-[10px] text-zinc-500 block mt-0.5">{lastSessionData.triagemData.frequenciaRecomendada}</span>
+              </div>
+            )}
+
+            {lastSessionData.eadData && (
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase block">Escore EAD</span>
+                <span className="font-extrabold text-zinc-900">{lastSessionData.eadData.scoreTotal}/21 pts</span>
+                <span className="text-[10px] text-zinc-500 block mt-0.5">{lastSessionData.eadData.classificacao}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Seção de Fichas de Pacientes (Pronta para Integração Backend) */}
+      <div className="bg-white border border-zinc-200 rounded-3xl p-6 space-y-4" id="pacientes-section">
+        <div className="flex justify-between items-center pb-3 border-b border-zinc-200">
+          <div className="flex items-center gap-2">
+            <FileText size={18} className="text-zinc-900" />
+            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">
+              Acesso a Fichas Clínicas
+            </h3>
+          </div>
+        </div>
+
+        <div className="p-8 text-center bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 space-y-2">
+          <FileText size={32} className="mx-auto text-zinc-400" />
+          <h4 className="text-sm font-extrabold text-zinc-800">
+            Módulo de Fichas e Integração de Banco de Dados
+          </h4>
+          <p className="text-xs text-zinc-500 max-w-lg mx-auto leading-relaxed">
+            As avaliações efetuadas na Via Única são formatadas para o e-SUS. Esta área receberá a busca e sincronização direta com a API do servidor backend.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };

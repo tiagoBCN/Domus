@@ -29,40 +29,8 @@ import type {
   EadDominio,
   EadResultado,
   PacienteForm,
+  TriagemData,
 } from "./types/triagens";
-
-// --- TIPOS DE DADOS ---
-interface TriagemData {
-  a1: {
-    resolutiva: boolean | null;
-    razoavel: boolean | null;
-    adesao: boolean | null;
-    consentimento: boolean | null;
-    infra: boolean | null;
-  };
-
-  alta: { [key: string]: boolean };
-  media: { [key: string]: boolean };
-
-  e3: {
-    internacao: number | null;
-    urgencia: number | null;
-    tempo: number | null;
-    morador: number | null;
-    suporte: number | null;
-    crianca: string | null;
-    neuro: number | null;
-    banho: number | null;
-    alimentacao: number | null;
-    locomocao: number | null;
-    poli: number | null;
-  };
-
-  classificacaoFinal?: string;
-  servicoResponsavel?: string;
-  frequenciaRecomendada?: string;
-  pontosIAEC?: number;
-}
 
 interface IAECOption {
   v: string | number;
@@ -591,7 +559,7 @@ const EAD_BANDS = [
     enf: "1 visita / mês",
     med: "1 visita a cada 2–3 meses ou conf. nec.",
   },
-  {
+      {
     min: 14,
     max: 17,
     key: "alta",
@@ -614,15 +582,22 @@ const EAD_BANDS = [
 ] as const;
 
 export default function Page() {
-  const [pacientes, setPacientes] = useState<Paciente[]>(MOCK_PACIENTES);
-  const [selectedPacienteId, setSelectedPacienteId] =
-    useState<string>("PAC-0231");
   const [showGuidelines, setShowGuidelines] = useState<boolean>(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
-  // --- CONTROLE DE MODAIS ---
-  const [activeModal, setActiveModal] = useState<
-    "acs" | "triagem" | "ead" | null
-  >(null);
+  // --- VIA ÚNICA: DADOS DA SESSÃO ATUAL ---
+  const [showViaUnicaModal, setShowViaUnicaModal] = useState<boolean>(false);
+  const [viaUnicaStep, setViaUnicaStep] = useState<number>(0);
+  const [pacienteNome, setPacienteNome] = useState<string>("");
+  const [pacienteProntuario, setPacienteProntuario] = useState<string>("");
+
+  const [lastSessionData, setLastSessionData] = useState<{
+    pacienteNome: string;
+    prontuario: string;
+    acsData?: ACSData;
+    triagemData?: TriagemData;
+    eadData?: EADData;
+  } | null>(null);
 
   // --- ESTADO DOS FORMULÁRIOS ---
   const [acsForm, setAcsForm] = useState<ACSData>({
@@ -708,10 +683,31 @@ export default function Page() {
   });
   const [eadResultado, setEadResultado] = useState<EADData | null>(null);
 
-  // --- SUBMISSIONS HANDLERS ---
+  // --- HANDLERS DA VIA ÚNICA ---
+  const handleStartViaUnica = () => {
+    setViaUnicaStep(0);
+    setShowViaUnicaModal(true);
+  };
+
+  const handleOpenModule = (module: 'acs' | 'triagem' | 'ead') => {
+    if (module === 'acs') setViaUnicaStep(1);
+    else if (module === 'triagem') setViaUnicaStep(2);
+    else if (module === 'ead') setViaUnicaStep(3);
+    setShowViaUnicaModal(true);
+  };
+
+  const handleAccessFichas = () => {
+    setShowGuidelines(false);
+    setTimeout(() => {
+      document.getElementById('pacientes-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  // --- SUBMISSIONS E LÓGICA DE TRIAGEM ---
   const handleAcsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!acsForm.paciente) return;
+    const nome = pacienteNome || acsForm.paciente;
+    if (!nome) return;
 
     const obsText =
       acsForm.observacoes.length > 0
@@ -720,7 +716,7 @@ export default function Page() {
     const cuidadosText =
       acsForm.cuidados.length > 0 ? acsForm.cuidados.join(", ") : "Nenhum";
 
-    const resumo = `Paciente: ${acsForm.paciente} | Data: ${acsForm.dataColeta} | ACS: ${acsForm.acsNome}
+    const resumo = `Paciente: ${nome} | Data: ${acsForm.dataColeta} | ACS: ${acsForm.acsNome}
 Mobilidade: ${acsForm.mobilidade}
 Intercorrências: ${acsForm.intercorrencias.naoTeve ? "Não" : `UPA: ${acsForm.intercorrencias.upaVezes}x, Hosp: ${acsForm.intercorrencias.hospVezes}x`}
 Sintomas: ${acsForm.sintomas || "Nenhum"} (${acsForm.sintomasFreq || "—"})
@@ -728,66 +724,10 @@ Cuidados: ${cuidadosText} ${acsForm.cuidadosOutro ? `(${acsForm.cuidadosOutro})`
 Dispositivos: ${acsForm.dispositivos || "Nenhum"}
 Medicamento Alterado: ${acsForm.medAlterado} ${acsForm.medQual ? `(${acsForm.medQual})` : ""}
 Cuidador: ${acsForm.cuidadorNome} (${acsForm.cuidadorStatus})
-Piora: ${acsForm.pioraRecente} | Necessidade: ${acsForm.necessidade}
-Obs: ${obsText}
 Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.alertaQual})` : ""}`;
 
     setAcsResumo(resumo);
-
-    const match = pacientes.find(
-      (p) => p.nome.toLowerCase() === acsForm.paciente.toLowerCase(),
-    );
-    if (match) {
-      setPacientes(
-        pacientes.map((p) =>
-          p.id === match.id
-            ? {
-                ...p,
-                historicoACS: [acsForm, ...(p.historicoACS ?? [])],
-              }
-            : p,
-        ),
-      );
-    } else {
-      const newPac: Paciente = {
-        id: `PAC-${Math.floor(1000 + Math.random() * 9000)}`,
-        nome: acsForm.paciente,
-        prontuario: `PRON-${Math.floor(100 + Math.random() * 900)}`,
-        idade: 67,
-        dataCriacao: new Date().toISOString().split("T")[0],
-        statusProtocolo: "Inicio",
-        historicoACS: [acsForm],
-        historicoTriagem: [],
-        historicoEAD: [],
-      };
-      setPacientes([newPac, ...pacientes]);
-    }
-  };
-
-  const handleAcsClear = () => {
-    setAcsForm({
-      paciente: activePaciente?.nome || "",
-      dataColeta: new Date().toISOString().split("T")[0],
-      acsNome: "",
-      mobilidade: "",
-      abvd: "",
-      intercorrencias: { naoTeve: true, upaVezes: 0, hospVezes: 0 },
-      sintomas: "",
-      sintomasFreq: "",
-      cuidados: [],
-      cuidadosOutro: "",
-      dispositivos: "",
-      medAlterado: "",
-      medQual: "",
-      cuidadorNome: "",
-      cuidadorStatus: "",
-      pioraRecente: "",
-      necessidade: "",
-      observacoes: [],
-      alertaFinal: "",
-      alertaQual: "",
-    });
-    setAcsResumo(null);
+    setViaUnicaStep(2); // Avança para Módulo 2
   };
 
   const handleTriagemStart = () => {
@@ -990,1091 +930,655 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
         ? "Comunicação imediata à equipe da UBS e monitoramento territorial intensivo"
         : band.acs,
       freqEnf: hasRedFlag
-        ? "Visita prioritária em até 7 dias (preferencialmente reavaliação em até 48h) para plano de cuidados e proposições de Assistência Social (CRAS), equipe Multiprofissional ou eMulti/NASF"
+        ? "Visita prioritária em até 7 dias para plano de cuidados"
         : band.enf,
       freqMed: hasRedFlag
-        ? "Avaliação médica prioritária para estabilização clínica, ajuste terapêutico e análise de encaminhamento para SAD (EMAD/AD2/AD3)"
+        ? "Avaliação médica prioritária para estabilização clínica"
         : band.med,
     };
 
     setEadResultado(resultado);
+    setViaUnicaStep(4); // Avança para o Resumo Consolidado
 
-    const target = activePaciente;
-    if (target) {
-      setPacientes((prev) =>
-        prev.map((p) =>
-          p.id === target.id
-            ? { ...p, historicoEAD: [resultado, ...(p.historicoEAD ?? [])] }
-            : p,
-        ),
-      );
-    }
-  };
-
-  const handleEadClear = () => {
-    setEadForm({
-      codigoPaciente: selectedPacienteId,
-      dataAvaliacao: new Date().toISOString().split("T")[0],
-      statusProtocolo: "Inicio",
-      origemDemanda: "eSF",
-      profissional: "",
-      pontuacaoAnterior: "",
-      valores: {
-        intercorrencias: null,
-        sintomas: null,
-        funcionalidade: null,
-        procedimentos: null,
-        dispositivos: null,
-        tratamento: null,
-        cuidador: null,
-      },
+    // Salva na sessão atual
+    setLastSessionData({
+      pacienteNome: pacienteNome || "Paciente em Atendimento",
+      prontuario: pacienteProntuario || "—",
+      acsData: acsForm,
+      triagemData: triagemForm,
+      eadData: resultado,
     });
-    setEadResultado(null);
   };
-
-  const activePaciente =
-    pacientes.find((p) => p.id === selectedPacienteId) || pacientes[0];
 
   return (
-    <div className="min-h-screen bg-[#fdfafc] text-[#2d1822] flex font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-[#09090b] flex font-sans">
       <Sidebar
-        pacientes={pacientes}
-        setPacientes={setPacientes}
-        selectedPacienteId={selectedPacienteId}
-        setSelectedPacienteId={setSelectedPacienteId}
+        showGuidelines={showGuidelines}
         setShowGuidelines={setShowGuidelines}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        onStartViaUnica={handleStartViaUnica}
+        onAccessFichas={handleAccessFichas}
       />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header
           showGuidelines={showGuidelines}
           setShowGuidelines={setShowGuidelines}
-          pacientes={pacientes}
-          selectedPacienteId={selectedPacienteId}
-          setSelectedPacienteId={setSelectedPacienteId}
-          setEadForm={setEadForm}
-          setAcsForm={setAcsForm}
+          onStartViaUnica={handleStartViaUnica}
+          activePacienteNome={pacienteNome || undefined}
         />
 
         {/* --- CONTEÚDO PRINCIPAL --- */}
         <main className="flex-1 p-8 max-w-6xl mx-auto w-full space-y-8 overflow-y-auto">
           {showGuidelines ? (
             /* --- DIRETRIZES SCREEN --- */
-            <div className="bg-white border border-[#ffe3ec] rounded-2xl p-6 space-y-6">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-6">
               <div>
-                <h2 className="text-xl font-black text-[#2d1822]">
+                <h2 className="text-xl font-black text-zinc-900">
                   Diretrizes de Elegibilidade e Protocolo SUS
                 </h2>
-                <p className="text-xs text-gray-500">
-                  Documento de suporte clínico rápido.
+                <p className="text-xs text-zinc-500">
+                  Documento de suporte clínico rápido da Atenção Domiciliar.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs leading-relaxed">
-                <div className="space-y-2 p-4 bg-[#fffafc] rounded-xl border border-[#fff0f5]">
-                  <h3 className="font-extrabold text-[#ff75a0] uppercase">
-                    ACS (Agente Comunitário)
+                <div className="space-y-2 p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+                  <h3 className="font-extrabold text-zinc-900 uppercase">
+                    ACS (Agente Comunitário de Saúde)
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-zinc-600">
                     O ACS faz o levantamento de campo. Coleta as informações
-                    estruturadas e as repassa ao enfermeiro da ESF para cálculo
+                    estruturadas no Módulo 1 e repassa à equipe ESF para cálculo
                     e estratificação do Escore EAD.
                   </p>
                 </div>
-                <div className="space-y-2 p-4 bg-[#fffafc] rounded-xl border border-[#fff0f5]">
-                  <h3 className="font-extrabold text-[#be80ff] uppercase">
+                <div className="space-y-2 p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+                  <h3 className="font-extrabold text-zinc-900 uppercase">
                     Fluxo de Encaminhamento ao SAD
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-zinc-600">
                     Caso o paciente pontue na triagem direta por média ou alta
-                    complexidade assistencial, deve-se gerar ficha e formalizar
-                    a transferência de modalidade para AD2/AD3 no SAD (Melhor em
-                    Casa).
+                    complexidade assistencial, gera-se o parecer de transferência
+                    de modalidade para AD2/AD3 no SAD (Melhor em Casa).
                   </p>
                 </div>
               </div>
             </div>
           ) : (
             /* --- DASHBOARD PRINCIPAL --- */
-            <>
-              {/* Quick Cards dos 3 Formulários (Open in Modal) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button
-                  onClick={() => {
-                    handleAcsClear();
-                    setActiveModal("acs");
-                  }}
-                  className="bg-white border border-[#ffe3ec] p-6 rounded-2xl text-left hover:border-[#ff75a0] transition-all flex flex-col justify-between h-36 relative group cursor-pointer"
-                >
-                  <div className="flex justify-between items-start w-full">
-                    <div className="w-10 h-10 rounded-xl bg-[#fff0f5] flex items-center justify-center text-[#ff75a0]">
-                      <ClipboardList size={20} />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-[#be80ff] uppercase tracking-wider">
-                      Módulo 1
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-md font-black text-[#2d1822]">
-                      Coleta Territorial ACS
-                    </h3>
-                    <p className="text-[11px] text-gray-400 mt-1">
-                      Checklist de 10 perguntas de campo.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    handleTriagemStart();
-                    setActiveModal("triagem");
-                  }}
-                  className="bg-white border border-[#ffe3ec] p-6 rounded-2xl text-left hover:border-[#ff75a0] transition-all flex flex-col justify-between h-36 relative group cursor-pointer"
-                >
-                  <div className="flex justify-between items-start w-full">
-                    <div className="w-10 h-10 rounded-xl bg-[#fff0f5] flex items-center justify-center text-[#ff75a0]">
-                      <Search size={20} />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-[#be80ff] uppercase tracking-wider">
-                      Módulo 2
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-md font-black text-[#2d1822]">
-                      Triagem de Entrada
-                    </h3>
-                    <p className="text-[11px] text-gray-400 mt-1">
-                      Elegibilidade básica e IAEC-AD.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    handleEadClear();
-                    setActiveModal("ead");
-                  }}
-                  className="bg-white border border-[#ffe3ec] p-6 rounded-2xl text-left hover:border-[#ff75a0] transition-all flex flex-col justify-between h-36 relative group cursor-pointer"
-                >
-                  <div className="flex justify-between items-start w-full">
-                    <div className="w-10 h-10 rounded-xl bg-[#fff0f5] flex items-center justify-center text-[#ff75a0]">
-                      <BarChart3 size={20} />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-[#be80ff] uppercase tracking-wider">
-                      Módulo 3
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-md font-black text-[#2d1822]">
-                      Escore EAD
-                    </h3>
-                    <p className="text-[11px] text-gray-400 mt-1">
-                      Pontuação de 7 domínios e Red Flags.
-                    </p>
-                  </div>
-                </button>
-              </div>
-
-              {/* List & Patient History Container (Subtle & minimalist design) */}
-              <div
-                className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                id="pacientes-section"
-              >
-                {/* Pacientes cadastrados */}
-                <div className="bg-white border border-[#ffeef4] rounded-2xl p-4 space-y-4 flex flex-col max-h-[600px]">
-                  <div className="flex justify-between items-center pb-2 border-b border-[#fff0f5] shrink-0">
-                    <h3 className="text-xs font-black uppercase text-[#ff75a0] tracking-wider">
-                      Fichas de Pacientes
-                    </h3>
-                  </div>
-
-                  <div className="space-y-1.5 overflow-y-auto flex-1 pr-1">
-                    {pacientes.map((p) => {
-                      const active = p.id === selectedPacienteId;
-                      return (
-                        <div
-                          key={p.id}
-                          onClick={() => setSelectedPacienteId(p.id)}
-                          className={`p-3 rounded-xl cursor-pointer text-xs transition-all ${
-                            active
-                              ? "bg-[#fff0f6] font-bold text-[#ff75a0]"
-                              : "hover:bg-[#fffbfc]"
-                          }`}
-                        >
-                          <div className="flex justify-between">
-                            <span>{p.nome}</span>
-                            <span className="text-[10px] text-gray-400 font-normal">
-                              {p.id}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Histórico do Paciente Selecionado */}
-                <div className="md:col-span-2 bg-white border border-[#ffeef4] rounded-2xl p-6 space-y-6">
-                  {activePaciente ? (
-                    <>
-                      <div className="flex justify-between items-start pb-4 border-b border-[#fff5f8]">
-                        <div>
-                          <p className="text-[11px] text-gray-400">
-                            Prontuário: {activePaciente.prontuario} | Cadastro:{" "}
-                            {activePaciente.dataCriacao}
-                          </p>
-                        </div>
-                        <span className="text-[10px] font-black uppercase text-[#ff75a0] bg-[#fff0f5] px-2.5 py-1 rounded-md">
-                          {activePaciente.statusProtocolo}
-                        </span>
-                      </div>
-
-                      {/* Escore EAD */}
-                      <div className="space-y-3">
-                        <h4 className="text-[10px] font-black text-[#be80ff] uppercase tracking-wider">
-                          Histórico Escore EAD
-                        </h4>
-                        {activePaciente.historicoEAD.length > 0 ? (
-                          activePaciente.historicoEAD.map((ead, idx) => (
-                            <div
-                              key={idx}
-                              className="p-3 bg-[#fffbfc] border border-[#fff5f8] rounded-xl text-xs flex justify-between items-center"
-                            >
-                              <div>
-                                <span className="font-extrabold text-[#ff75a0]">
-                                  {ead.classificacao}
-                                </span>
-                                <span className="text-[10px] text-gray-400 block mt-0.5">
-                                  Visitas: {ead.freqGeral}
-                                </span>
-                              </div>
-                              <div className="text-right">
-                                <span className="font-black text-sm">
-                                  {ead.scoreTotal}/21
-                                </span>
-                                <span className="text-[9px] text-gray-400 block">
-                                  {ead.dataAvaliacao}
-                                </span>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 italic">
-                            Nenhum score EAD registrado.
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Coletas ACS */}
-                      <div className="space-y-3 pt-4 border-t border-[#fff5f8]">
-                        <h4 className="text-[10px] font-black text-[#be80ff] uppercase tracking-wider">
-                          Checklists ACS
-                        </h4>
-                        {activePaciente.historicoACS.length > 0 ? (
-                          activePaciente.historicoACS.map((acs, idx) => (
-                            <div
-                              key={idx}
-                              className="p-3 bg-[#fffbfc] border border-[#fff5f8] rounded-xl text-xs space-y-1"
-                            >
-                              <div className="flex justify-between font-bold">
-                                <span>Coletor: {acs.acsNome || "ACS"}</span>
-                                <span className="text-[10px] text-gray-400">
-                                  {acs.dataColeta}
-                                </span>
-                              </div>
-                              <p className="text-gray-500 text-[11px]">
-                                {acs.abvd || "ABVD estável"}
-                              </p>
-                              {acs.alertaFinal === "Sim" && (
-                                <p className="text-[10px] font-bold text-red-500">
-                                  🚨 Alerta: {acs.alertaQual}
-                                </p>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 italic">
-                            Nenhuma coleta do ACS registrada.
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-xs text-gray-400 italic text-center py-12">
-                      Selecione um paciente para ver o histórico.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </>
+            <Dashboard
+              onStartViaUnica={handleStartViaUnica}
+              onOpenModule={handleOpenModule}
+              lastSessionData={lastSessionData}
+            />
           )}
         </main>
       </div>
 
       {/* ========================================================================= */}
-      {/* --- MODAL 1: ACS COLETA --- */}
+      {/* --- WIZARD UNIFICADO: VIA ÚNICA DE TRIAGEM --- */}
       {/* ========================================================================= */}
-      {activeModal === "acs" && (
-        <div className="fixed inset-0 bg-[#2d1822]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col border border-[#ffe3ec]">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-[#ffeef4] flex justify-between items-center shrink-0">
-              <div>
-                <h3 className="text-md font-black text-[#2d1822]">
-                  Coleta Territorial (ACS)
-                </h3>
-                <p className="text-[11px] text-gray-400">
-                  Preenchimento de dados pelo Agente Comunitário
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Form Content */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
-              <form onSubmit={handleAcsSubmit} className="space-y-4">
-                {/* Identificação */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-3 border-b border-[#fff0f5]">
-                  <div>
-                    <label className="text-[10px] font-extrabold uppercase text-[#ff75a0] block mb-1">
-                      Paciente
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={acsForm.paciente}
-                      onChange={(e) =>
-                        setAcsForm({ ...acsForm, paciente: e.target.value })
-                      }
-                      placeholder="Nome do paciente"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-extrabold uppercase text-[#ff75a0] block mb-1">
-                      ACS Responsável
-                    </label>
-                    <input
-                      type="text"
-                      value={acsForm.acsNome}
-                      onChange={(e) =>
-                        setAcsForm({ ...acsForm, acsNome: e.target.value })
-                      }
-                      placeholder="Nome do ACS"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* 1. Mobilidade */}
-                <div className="flex justify-between items-center py-1">
-                  <span className="font-bold">1. Mobilidade</span>
-                  <div className="flex gap-4">
-                    {["Sim", "Não", "Só com ajuda"].map((opt) => (
-                      <label
-                        key={opt}
-                        className="flex items-center gap-1 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="mobilidade"
-                          checked={acsForm.mobilidade === opt}
-                          onChange={() =>
-                            setAcsForm({ ...acsForm, mobilidade: opt })
-                          }
-                          className="accent-[#ff75a0]"
-                        />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. ABVD */}
-                <div className="space-y-1">
-                  <span className="font-bold block">2. Ajuda em ABVD</span>
-                  <textarea
-                    value={acsForm.abvd}
-                    onChange={(e) =>
-                      setAcsForm({ ...acsForm, abvd: e.target.value })
-                    }
-                    placeholder="Quais atividades precisa de ajuda..."
-                    className="w-full p-2 border border-[#ffd6e8] rounded-lg h-12 resize-none"
-                  />
-                </div>
-
-                {/* 3. Intercorrências */}
-                <div className="space-y-2">
-                  <span className="font-bold block">
-                    3. Intercorrências nos últimos 30 dias
-                  </span>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={acsForm.intercorrencias.naoTeve}
-                      onChange={(e) =>
-                        setAcsForm({
-                          ...acsForm,
-                          intercorrencias: {
-                            naoTeve: e.target.checked,
-                            upaVezes: 0,
-                            hospVezes: 0,
-                          },
-                        })
-                      }
-                      className="accent-[#ff75a0]"
-                    />
-                    Não teve intercorrências
-                  </label>
-                  {!acsForm.intercorrencias.naoTeve && (
-                    <div className="flex gap-3 pt-1">
-                      <label>
-                        UPA (Nº vezes):
-                        <input
-                          type="number"
-                          value={acsForm.intercorrencias.upaVezes}
-                          onChange={(e) =>
-                            setAcsForm({
-                              ...acsForm,
-                              intercorrencias: {
-                                ...acsForm.intercorrencias,
-                                upaVezes: parseInt(e.target.value) || 0,
-                              },
-                            })
-                          }
-                          className="w-12 ml-1 p-1 border border-[#ffd6e8] rounded"
-                        />
-                      </label>
-                      <label>
-                        Internações (Nº vezes):
-                        <input
-                          type="number"
-                          value={acsForm.intercorrencias.hospVezes}
-                          onChange={(e) =>
-                            setAcsForm({
-                              ...acsForm,
-                              intercorrencias: {
-                                ...acsForm.intercorrencias,
-                                hospVezes: parseInt(e.target.value) || 0,
-                              },
-                            })
-                          }
-                          className="w-12 ml-1 p-1 border border-[#ffd6e8] rounded"
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-
-                {/* 4. Sintomas */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="font-bold block mb-1">
-                      4. Sintoma atual
-                    </label>
-                    <input
-                      type="text"
-                      value={acsForm.sintomas}
-                      onChange={(e) =>
-                        setAcsForm({ ...acsForm, sintomas: e.target.value })
-                      }
-                      placeholder="Ex: Dor"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold block mb-1">Frequência</label>
-                    <input
-                      type="text"
-                      value={acsForm.sintomasFreq}
-                      onChange={(e) =>
-                        setAcsForm({ ...acsForm, sintomasFreq: e.target.value })
-                      }
-                      placeholder="Ex: Diário"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* 5. Cuidados */}
-                <div className="space-y-1">
-                  <span className="font-bold block">5. Cuidados em casa</span>
-                  <div className="flex flex-wrap gap-3">
-                    {[
-                      "Curativo",
-                      "Sonda",
-                      "Ostomia",
-                      "Oxigênio",
-                      "Medicação",
-                    ].map((cuid) => (
-                      <label
-                        key={cuid}
-                        className="flex items-center gap-1 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={acsForm.cuidados.includes(cuid)}
-                          onChange={(e) => {
-                            const list = e.target.checked
-                              ? [...acsForm.cuidados, cuid]
-                              : acsForm.cuidados.filter((c) => c !== cuid);
-                            setAcsForm({ ...acsForm, cuidados: list });
-                          }}
-                          className="accent-[#ff75a0]"
-                        />
-                        {cuid}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 7. Medicamento Alterado */}
-                <div className="flex justify-between items-center">
-                  <span className="font-bold">
-                    7. Medicamento alterado recentemente?
-                  </span>
-                  <div className="flex gap-4">
-                    {["Sim", "Não"].map((opt) => (
-                      <label
-                        key={opt}
-                        className="flex items-center gap-1 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="medAlterado"
-                          checked={acsForm.medAlterado === opt}
-                          onChange={() =>
-                            setAcsForm({ ...acsForm, medAlterado: opt })
-                          }
-                          className="accent-[#ff75a0]"
-                        />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 8. Cuidador */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="font-bold block mb-1">
-                      8. Cuidador Principal
-                    </label>
-                    <input
-                      type="text"
-                      value={acsForm.cuidadorNome}
-                      onChange={(e) =>
-                        setAcsForm({ ...acsForm, cuidadorNome: e.target.value })
-                      }
-                      placeholder="Nome do cuidador"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold block mb-1">Status</label>
-                    <select
-                      value={acsForm.cuidadorStatus}
-                      onChange={(e) =>
-                        setAcsForm({
-                          ...acsForm,
-                          cuidadorStatus: e.target.value,
-                        })
-                      }
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg bg-white"
-                    >
-                      <option value="">Selecione...</option>
-                      <option value="Adequado">Adequado</option>
-                      <option value="Com dificuldade">Com dificuldade</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Alerta Urgência */}
-                <div className="p-3 bg-red-50 text-red-950 rounded-xl space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-extrabold text-red-700">
-                      🚨 Necessita avaliação urgente?
-                    </span>
-                    <div className="flex gap-3 font-semibold">
-                      {["Sim", "Não"].map((opt) => (
-                        <label
-                          key={opt}
-                          className="flex items-center gap-1 cursor-pointer"
-                        >
-                          <input
-                            type="radio"
-                            name="alertaFinal"
-                            checked={acsForm.alertaFinal === opt}
-                            onChange={() =>
-                              setAcsForm({ ...acsForm, alertaFinal: opt })
-                            }
-                            className="accent-red-500"
-                          />
-                          {opt}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  {acsForm.alertaFinal === "Sim" && (
-                    <input
-                      type="text"
-                      required
-                      placeholder="Sinalize o motivo da urgência..."
-                      value={acsForm.alertaQual}
-                      onChange={(e) =>
-                        setAcsForm({ ...acsForm, alertaQual: e.target.value })
-                      }
-                      className="w-full p-1.5 border border-red-200 bg-white rounded text-red-700 font-semibold focus:outline-none"
-                    />
-                  )}
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 p-3 bg-[#ff75a0] text-white rounded-xl font-bold hover:bg-[#ff5287]"
-                  >
-                    Salvar Coleta ACS
-                  </button>
-                </div>
-              </form>
-
-              {/* Resumo formatado gerado */}
-              {acsResumo && (
-                <div className="bg-emerald-50 text-emerald-900 p-4 border border-emerald-100 rounded-xl space-y-2">
-                  <h4 className="font-extrabold">
-                    Resumo formatado (copie para o e-SUS):
-                  </h4>
-                  <pre className="text-[10px] bg-white p-3 rounded border border-emerald-100 whitespace-pre-wrap font-mono">
-                    {acsResumo}
-                  </pre>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* --- MODAL 2: TRIAGEM --- */}
-      {/* ========================================================================= */}
-      {activeModal === "triagem" && (
-        <div className="fixed inset-0 bg-[#2d1822]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col border border-[#ffe3ec]">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-[#ffeef4] flex justify-between items-center shrink-0">
-              <div>
-                <h3 className="text-md font-black text-[#2d1822]">
-                  Triagem de Elegibilidade
-                </h3>
-                <p className="text-[11px] text-gray-400">
-                  Fluxo regulatório para SAD / UBS
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
-              {/* Wizard steps wrapper */}
-              {triagemStep === 0 && (
-                <div className="space-y-4">
-                  <p className="text-gray-500 leading-normal">
-                    Determine a elegibilidade do paciente seguindo o roteiro do
-                    SUS: filtros preliminares de infraestrutura/consentimento,
-                    triagem direta de procedimentos especiais, e por fim o
-                    IAEC-AD.
+      {showViaUnicaModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col border border-zinc-200 shadow-2xl">
+            {/* Header do Modal com Abas do Wizard */}
+            <div className="px-6 py-4 border-b border-zinc-200 bg-zinc-50 flex flex-col gap-3 shrink-0">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-md font-black text-zinc-900">
+                    Via Única de Triagem Domus.ai
+                  </h3>
+                  <p className="text-[11px] text-zinc-500">
+                    Atendimento Clínico Integrado (Passo {viaUnicaStep + 1} de 5)
                   </p>
-                  <button
-                    onClick={handleTriagemStart}
-                    className="w-full p-3 bg-[#ff75a0] text-white rounded-xl font-bold hover:bg-[#ff5287]"
-                  >
-                    Iniciar Triagem
-                  </button>
                 </div>
-              )}
+                <button
+                  onClick={() => setShowViaUnicaModal(false)}
+                  className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-200 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-              {/* Filtros Q1 */}
-              {triagemStep >= 1 && triagemStep <= 5 && (
-                <div className="space-y-4">
-                  <span className="text-[9px] uppercase font-bold text-[#be80ff]">
-                    Filtros ({triagemFilterIdx + 1}/5)
-                  </span>
-                  <h4 className="text-sm font-extrabold text-[#2d1822]">
-                    {Q1[triagemFilterIdx].label}
-                  </h4>
-                  <p className="text-gray-400 text-[11px]">
-                    {Q1[triagemFilterIdx].help}
-                  </p>
-
-                  <div className="flex gap-3 pt-2">
+              {/* Steps Navigator Bar */}
+              <div className="grid grid-cols-5 gap-1.5 pt-1">
+                {[
+                  { step: 0, label: "Identificação" },
+                  { step: 1, label: "Módulo 1: ACS" },
+                  { step: 2, label: "Módulo 2: Entrada" },
+                  { step: 3, label: "Módulo 3: EAD" },
+                  { step: 4, label: "Resumo Consolidado" },
+                ].map((s) => {
+                  const active = viaUnicaStep === s.step;
+                  const completed = viaUnicaStep > s.step;
+                  return (
                     <button
-                      onClick={() => handleFilterClick(true)}
-                      className="flex-1 p-3 bg-emerald-50 text-emerald-800 rounded-xl font-bold border border-emerald-100 hover:bg-emerald-100"
+                      key={s.step}
+                      onClick={() => setViaUnicaStep(s.step)}
+                      className={`py-1.5 px-2 rounded-lg text-[10px] font-extrabold truncate transition-all text-center ${
+                        active
+                          ? "bg-zinc-900 text-white shadow-sm"
+                          : completed
+                          ? "bg-zinc-200 text-zinc-800"
+                          : "bg-zinc-100 text-zinc-400 hover:bg-zinc-200"
+                      }`}
                     >
-                      Sim
+                      {s.label}
                     </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Conteúdo das Etapas do Wizard */}
+            <div className="p-6 overflow-y-auto flex-1 text-xs text-zinc-800 space-y-4">
+              {/* ETAPA 0: DADOS DO PACIENTE */}
+              {viaUnicaStep === 0 && (
+                <div className="space-y-6 max-w-lg mx-auto py-4">
+                  <div className="text-center space-y-1">
+                    <h4 className="text-base font-black text-zinc-900">
+                      Identificação do Paciente
+                    </h4>
+                    <p className="text-xs text-zinc-500">
+                      Insira o nome e dados do atendimento para iniciar os 3 módulos.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[11px] font-extrabold uppercase text-zinc-700 block mb-1">
+                        Nome do Paciente *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={pacienteNome}
+                        onChange={(e) => {
+                          setPacienteNome(e.target.value);
+                          setAcsForm((prev) => ({ ...prev, paciente: e.target.value }));
+                        }}
+                        placeholder="Ex: Maria das Dores da Silva"
+                        className="w-full p-3 border border-zinc-300 rounded-xl text-sm font-semibold focus:border-zinc-900 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-extrabold uppercase text-zinc-700 block mb-1">
+                        Prontuário / Documento
+                      </label>
+                      <input
+                        type="text"
+                        value={pacienteProntuario}
+                        onChange={(e) => setPacienteProntuario(e.target.value)}
+                        placeholder="Ex: PRON-84920 / CPF"
+                        className="w-full p-3 border border-zinc-300 rounded-xl text-sm focus:border-zinc-900 focus:outline-none"
+                      />
+                    </div>
+
                     <button
-                      onClick={() => handleFilterClick(false)}
-                      className="flex-1 p-3 bg-rose-50 text-rose-800 rounded-xl font-bold border border-rose-100 hover:bg-rose-100"
+                      disabled={!pacienteNome.trim()}
+                      onClick={() => setViaUnicaStep(1)}
+                      className="w-full p-4 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 disabled:opacity-50 transition-colors shadow-sm mt-4 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      Não
+                      <span>Avançar para Módulo 1 (ACS)</span>
+                      <ChevronRight size={16} />
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Parada (Stop) */}
-              {triagemStep === -1 && (
-                <div className="space-y-4 text-center">
-                  <div className="text-red-500 font-extrabold">
-                    🚨 Inelegível para a modalidade proposta
-                  </div>
-                  <p className="p-3 bg-red-50 border border-red-100 text-red-900 rounded-xl">
-                    {Q1[triagemFilterIdx]?.stop}
-                  </p>
-                  <div className="font-bold text-xs">
-                    Ação Recomendada:{" "}
-                    <span className="text-[#ff75a0]">
-                      {Q1[triagemFilterIdx]?.action}
+              {/* ETAPA 1: MÓDULO 1 (ACS COLETA) */}
+              {viaUnicaStep === 1 && (
+                <form onSubmit={handleAcsSubmit} className="space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
+                    <h4 className="font-extrabold text-zinc-900 text-sm">
+                      Coleta Territorial — Agente Comunitário (ACS)
+                    </h4>
+                    <span className="text-[11px] font-bold text-zinc-500">
+                      Paciente: {pacienteNome || "Não identificado"}
                     </span>
                   </div>
-                  <button
-                    onClick={handleTriagemStart}
-                    className="w-full p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold"
-                  >
-                    Reiniciar
-                  </button>
-                </div>
-              )}
 
-              {/* Alta Complexidade */}
-              {triagemStep === 6 && (
-                <div className="space-y-4">
-                  <h4 className="text-sm font-extrabold text-[#2d1822]">
-                    Procedimentos de Alta Complexidade Domiciliar?
-                  </h4>
-                  <div className="space-y-1.5">
-                    {ALTA_ITEMS.map((item) => (
-                      <label
-                        key={item.key}
-                        className="flex items-center gap-2 p-2.5 bg-[#fffbfc] border border-[#fff0f5] rounded-xl cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={triagemForm.alta[item.key] || false}
-                          onChange={(e) =>
-                            setTriagemForm({
-                              ...triagemForm,
-                              alta: {
-                                ...triagemForm.alta,
-                                [item.key]: e.target.checked,
-                              },
-                            })
-                          }
-                          className="accent-[#ff75a0]"
-                        />
-                        <span>{item.label}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-zinc-900 block mb-1">
+                        ACS Responsável
                       </label>
-                    ))}
-                  </div>
-                  <button
-                    onClick={handleAltaSubmit}
-                    className="w-full p-3 bg-[#ff75a0] text-white rounded-xl font-bold"
-                  >
-                    Confirmar e Avançar
-                  </button>
-                </div>
-              )}
-
-              {/* Média Complexidade */}
-              {triagemStep === 7 && (
-                <div className="space-y-4">
-                  <h4 className="text-sm font-extrabold text-[#2d1822]">
-                    Cuidados de Média Complexidade?
-                  </h4>
-                  <div className="space-y-1.5">
-                    {MEDIA_ITEMS.map((item) => (
-                      <label
-                        key={item.key}
-                        className="flex items-center gap-2 p-2.5 bg-[#fffbfc] border border-[#fff0f5] rounded-xl cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={triagemForm.media[item.key] || false}
-                          onChange={(e) =>
-                            setTriagemForm({
-                              ...triagemForm,
-                              media: {
-                                ...triagemForm.media,
-                                [item.key]: e.target.checked,
-                              },
-                            })
-                          }
-                          className="accent-[#ff75a0]"
-                        />
-                        <span>{item.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <button
-                    onClick={handleMediaSubmit}
-                    className="w-full p-3 bg-[#ff75a0] text-white rounded-xl font-bold"
-                  >
-                    Confirmar e Avançar
-                  </button>
-                </div>
-              )}
-
-              {/* IAEC-AD Questions */}
-              {triagemStep === 8 && (
-                <div className="space-y-4">
-                  {(() => {
-                    const seq: IAECItem[] = getIAECSequence();
-                    const item = seq[triagemIAECIdx];
-
-                    if (!item) return null;
-
-                    return (
-                      <>
-                        <span className="text-[9px] uppercase font-bold text-[#be80ff]">
-                          IAEC-AD ({triagemIAECIdx + 1}/{seq.length})
-                        </span>
-
-                        <h4 className="text-sm font-extrabold text-[#2d1822]">
-                          {item.title}
-                        </h4>
-
-                        <div className="space-y-1.5 pt-1">
-                          {item.opts.map((opt) => (
-                            <button
-                              key={opt.v.toString()}
-                              type="button"
-                              onClick={() => handleIAECClick(opt.v)}
-                              className="w-full flex justify-between p-3 border border-[#ffeef4] bg-white rounded-xl text-left font-bold"
-                            >
-                              <span>{opt.l}</span>
-
-                              {typeof opt.v === "number" && (
-                                <span className="text-[#ff75a0]">
-                                  {opt.v} pts
-                                </span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
-              {triagemStep === 9 && (
-                <div className="space-y-4 text-center">
-                  <div className="inline-block p-4 border border-[#ff75a0] rounded-xl bg-[#fffafc]">
-                    <span className="text-[9px] uppercase text-[#ff75a0] font-black block">
-                      Classificação Obtida
-                    </span>
-                    <span className="text-3xl font-black text-[#ff75a0] block">
-                      {triagemForm.classificacaoFinal}
-                    </span>
-                  </div>
-
-                  <div className="p-3 bg-[#fffbfc] border border-[#ffeef4] rounded-xl text-left space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Serviço:</span>
-                      <span className="font-extrabold">
-                        {triagemForm.servicoResponsavel}
-                      </span>
+                      <input
+                        type="text"
+                        value={acsForm.acsNome}
+                        onChange={(e) =>
+                          setAcsForm({ ...acsForm, acsNome: e.target.value })
+                        }
+                        placeholder="Nome do Agente"
+                        className="w-full p-2 border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-900"
+                      />
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Frequência:</span>
-                      <span className="font-extrabold text-[#ff75a0]">
-                        {triagemForm.frequenciaRecomendada}
-                      </span>
+                    <div>
+                      <label className="font-bold text-zinc-900 block mb-1">
+                        1. Mobilidade
+                      </label>
+                      <select
+                        value={acsForm.mobilidade}
+                        onChange={(e) =>
+                          setAcsForm({ ...acsForm, mobilidade: e.target.value })
+                        }
+                        className="w-full p-2 border border-zinc-300 rounded-lg bg-white focus:outline-none focus:border-zinc-900"
+                      >
+                        <option value="">Selecione...</option>
+                        <option value="Sim">Sim (Independente)</option>
+                        <option value="Não">Não (Acamado)</option>
+                        <option value="Só com ajuda">Só com ajuda</option>
+                      </select>
                     </div>
                   </div>
 
-                  <button
-                    onClick={handleTriagemStart}
-                    className="w-full p-2.5 bg-[#ff75a0] text-white rounded-xl font-bold"
-                  >
-                    Nova Triagem
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* --- MODAL 3: ESCORE EAD --- */}
-      {/* ========================================================================= */}
-      {activeModal === "ead" && (
-        <div className="fixed inset-0 bg-[#2d1822]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col border border-[#ffe3ec]">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-[#ffeef4] flex justify-between items-center shrink-0">
-              <div>
-                <h3 className="text-md font-black text-[#2d1822]">
-                  Escore EAD
-                </h3>
-                <p className="text-[11px] text-gray-400">
-                  Estratificação clínica de 7 domínios
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Form Content */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
-              <form onSubmit={handleEadSubmit} className="space-y-4">
-                {/* Identificação */}
-                <div className="grid grid-cols-2 gap-3 pb-3 border-b border-[#fff0f5]">
-                  <div>
-                    <label className="text-[9px] font-black uppercase text-[#ff75a0] block mb-0.5">
-                      Escore Anterior
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="21"
-                      value={eadForm.pontuacaoAnterior}
-                      onChange={(e) =>
-                        setEadForm({
-                          ...eadForm,
-                          pontuacaoAnterior:
-                            e.target.value === ""
-                              ? ""
-                              : parseInt(e.target.value),
-                        })
-                      }
-                      placeholder="Opcional (0-21)"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[9px] font-black uppercase text-[#ff75a0] block mb-0.5">
-                      Profissional
-                    </label>
+                  <div className="space-y-1">
+                    <label className="font-bold text-zinc-900 block">2. Ajuda em ABVD</label>
                     <input
                       type="text"
-                      value={eadForm.profissional}
+                      value={acsForm.abvd}
                       onChange={(e) =>
-                        setEadForm({ ...eadForm, profissional: e.target.value })
+                        setAcsForm({ ...acsForm, abvd: e.target.value })
                       }
-                      placeholder="Seu nome"
-                      className="w-full p-2 border border-[#ffd6e8] rounded-lg"
+                      placeholder="Atividades básicas que precisa de apoio..."
+                      className="w-full p-2 border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-900"
                     />
                   </div>
-                </div>
 
-                {/* 7 Domínios */}
-                <div className="space-y-4">
-                  {EAD_DOMAINS.map((dom) => (
-                    <div key={dom.id} className="space-y-2">
-                      <h4 className="font-extrabold text-[#2d1822] flex items-center gap-1.5">
-                        <span>{dom.icon}</span>
-                        {dom.title}
-                      </h4>
-                      <p className="text-[10px] text-gray-400">{dom.note}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-zinc-900 block mb-1">3. Sintoma Atual</label>
+                      <input
+                        type="text"
+                        value={acsForm.sintomas}
+                        onChange={(e) =>
+                          setAcsForm({ ...acsForm, sintomas: e.target.value })
+                        }
+                        placeholder="Ex: Dor, Dispneia"
+                        className="w-full p-2 border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-zinc-900 block mb-1">Frequência</label>
+                      <input
+                        type="text"
+                        value={acsForm.sintomasFreq}
+                        onChange={(e) =>
+                          setAcsForm({ ...acsForm, sintomasFreq: e.target.value })
+                        }
+                        placeholder="Ex: Diário"
+                        className="w-full p-2 border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-900"
+                      />
+                    </div>
+                  </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {dom.options.map((opt) => (
-                          <label
-                            key={opt.v}
-                            className={`flex items-start gap-2 p-2 border rounded-xl cursor-pointer ${
-                              eadForm.valores[
-                                dom.id as keyof typeof eadForm.valores
-                              ] === opt.v
-                                ? "border-[#ff75a0] bg-[#fff5f8] font-bold"
-                                : "border-[#ffd6e8] hover:bg-[#fffdfd]"
-                            }`}
-                          >
+                  <div className="p-3 bg-red-50 text-red-950 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-extrabold text-red-700">
+                        🚨 Urgência sinalizada?
+                      </span>
+                      <div className="flex gap-3 font-semibold">
+                        {["Sim", "Não"].map((opt) => (
+                          <label key={opt} className="flex items-center gap-1 cursor-pointer">
                             <input
                               type="radio"
-                              name={`ead_${dom.id}`}
-                              checked={
-                                eadForm.valores[
-                                  dom.id as keyof typeof eadForm.valores
-                                ] === opt.v
-                              }
-                              onChange={() =>
-                                setEadForm({
-                                  ...eadForm,
-                                  valores: {
-                                    ...eadForm.valores,
-                                    [dom.id]: opt.v,
-                                  },
-                                })
-                              }
-                              className="accent-[#ff75a0] mt-0.5"
+                              name="alertaFinal"
+                              checked={acsForm.alertaFinal === opt}
+                              onChange={() => setAcsForm({ ...acsForm, alertaFinal: opt })}
+                              className="accent-red-600"
                             />
-                            <span className="text-[11px] leading-tight">
-                              <strong className="text-[#ff75a0] mr-1">
-                                ({opt.v} pt)
-                              </strong>
-                              {opt.t}
-                            </span>
+                            {opt}
                           </label>
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    {acsForm.alertaFinal === "Sim" && (
+                      <input
+                        type="text"
+                        placeholder="Motivo da urgência..."
+                        value={acsForm.alertaQual}
+                        onChange={(e) => setAcsForm({ ...acsForm, alertaQual: e.target.value })}
+                        className="w-full p-2 border border-red-200 rounded bg-white text-red-700 font-semibold"
+                      />
+                    )}
+                  </div>
 
-                <button
-                  type="submit"
-                  className="w-full p-3 bg-[#ff75a0] text-white font-bold rounded-xl hover:bg-[#ff5287]"
-                >
-                  Calcular Escore
-                </button>
-              </form>
+                  <div className="flex justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setViaUnicaStep(0)}
+                      className="px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 rounded-xl font-bold text-zinc-700 cursor-pointer"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-zinc-900 text-white rounded-xl font-bold hover:bg-zinc-800 cursor-pointer"
+                    >
+                      Salvar e Avançar para Módulo 2 (Triagem)
+                    </button>
+                  </div>
+                </form>
+              )}
 
-              {/* Resultado EAD */}
-              {eadResultado && (
-                <div className="p-4 bg-[#fffafc] border border-[#ff75a0] rounded-2xl space-y-3">
-                  <div className="text-center">
-                    <span className="text-[10px] font-black uppercase text-[#ff75a0] block">
-                      Score Total
-                    </span>
-                    <span className="text-3xl font-black text-[#ff75a0]">
-                      {eadResultado.scoreTotal}/21
-                    </span>
-                    <span className="text-xs font-extrabold uppercase text-[#be80ff] block mt-0.5">
-                      {eadResultado.classificacao}
+              {/* ETAPA 2: MÓDULO 2 (TRIAGEM ELEGIBILIDADE) */}
+              {viaUnicaStep === 2 && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
+                    <h4 className="font-extrabold text-zinc-900 text-sm">
+                      Módulo 2: Triagem de Elegibilidade e IAEC-AD
+                    </h4>
+                    <span className="text-[11px] font-bold text-zinc-500">
+                      Paciente: {pacienteNome || "Não identificado"}
                     </span>
                   </div>
 
-                  <div className="text-[11px] space-y-1 border-t border-[#ffeef4] pt-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Freq. Geral:</span>
-                      <span className="font-extrabold">
-                        {eadResultado.freqGeral}
+                  {triagemStep === 0 && (
+                    <div className="space-y-4 text-center py-4">
+                      <p className="text-zinc-600 max-w-md mx-auto">
+                        Inicie os questionamentos regulatórios do SUS para definir a elegibilidade (AD1, AD2 ou AD3).
+                      </p>
+                      <button
+                        onClick={handleTriagemStart}
+                        className="px-6 py-3 bg-zinc-900 text-white rounded-xl font-bold hover:bg-zinc-800 shadow-sm cursor-pointer"
+                      >
+                        Iniciar Perguntas da Triagem
+                      </button>
+                    </div>
+                  )}
+
+                  {triagemStep >= 1 && triagemStep <= 5 && (
+                    <div className="space-y-4 bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
+                      <span className="text-[10px] uppercase font-bold text-zinc-500">
+                        Filtro ({triagemFilterIdx + 1}/5)
+                      </span>
+                      <h5 className="text-sm font-extrabold text-zinc-900">
+                        {Q1[triagemFilterIdx].label}
+                      </h5>
+                      <p className="text-zinc-500 text-[11px]">
+                        {Q1[triagemFilterIdx].help}
+                      </p>
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={() => handleFilterClick(true)}
+                          className="flex-1 p-3 bg-emerald-50 text-emerald-800 rounded-xl font-bold border border-emerald-100 hover:bg-emerald-100 cursor-pointer"
+                        >
+                          Sim
+                        </button>
+                        <button
+                          onClick={() => handleFilterClick(false)}
+                          className="flex-1 p-3 bg-rose-50 text-rose-800 rounded-xl font-bold border border-rose-100 hover:bg-rose-100 cursor-pointer"
+                        >
+                          Não
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {triagemStep === -1 && (
+                    <div className="space-y-4 text-center p-4 bg-red-50 text-red-900 rounded-2xl border border-red-200">
+                      <div className="font-extrabold">🚨 Inelegível para AD</div>
+                      <p>{Q1[triagemFilterIdx]?.stop}</p>
+                      <button
+                        onClick={handleTriagemStart}
+                        className="px-4 py-2 bg-zinc-900 text-white rounded-lg font-bold cursor-pointer"
+                      >
+                        Reiniciar Triagem
+                      </button>
+                    </div>
+                  )}
+
+                  {triagemStep === 6 && (
+                    <div className="space-y-4">
+                      <h5 className="font-extrabold text-zinc-900">Procedimentos de Alta Complexidade Domiciliar?</h5>
+                      <div className="space-y-1.5">
+                        {ALTA_ITEMS.map((item) => (
+                          <label key={item.key} className="flex items-center gap-2 p-2 bg-zinc-50 rounded-xl border border-zinc-200 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={triagemForm.alta[item.key] || false}
+                              onChange={(e) => setTriagemForm({ ...triagemForm, alta: { ...triagemForm.alta, [item.key]: e.target.checked } })}
+                              className="accent-zinc-900"
+                            />
+                            <span>{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <button onClick={handleAltaSubmit} className="w-full p-3 bg-zinc-900 text-white rounded-xl font-bold cursor-pointer">
+                        Confirmar e Avançar
+                      </button>
+                    </div>
+                  )}
+
+                  {triagemStep === 7 && (
+                    <div className="space-y-4">
+                      <h5 className="font-extrabold text-zinc-900">Cuidados de Média Complexidade?</h5>
+                      <div className="space-y-1.5">
+                        {MEDIA_ITEMS.map((item) => (
+                          <label key={item.key} className="flex items-center gap-2 p-2 bg-zinc-50 rounded-xl border border-zinc-200 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={triagemForm.media[item.key] || false}
+                              onChange={(e) => setTriagemForm({ ...triagemForm, media: { ...triagemForm.media, [item.key]: e.target.checked } })}
+                              className="accent-zinc-900"
+                            />
+                            <span>{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <button onClick={handleMediaSubmit} className="w-full p-3 bg-zinc-900 text-white rounded-xl font-bold cursor-pointer">
+                        Confirmar e Avançar
+                      </button>
+                    </div>
+                  )}
+
+                  {triagemStep === 8 && (
+                    <div className="space-y-4">
+                      {(() => {
+                        const seq: IAECItem[] = getIAECSequence();
+                        const item = seq[triagemIAECIdx];
+                        if (!item) return null;
+                        return (
+                          <>
+                            <span className="text-[10px] uppercase font-bold text-zinc-500">IAEC-AD ({triagemIAECIdx + 1}/{seq.length})</span>
+                            <h5 className="font-extrabold text-zinc-900">{item.title}</h5>
+                            <div className="space-y-1.5">
+                              {item.opts.map((opt) => (
+                                <button
+                                  key={opt.v.toString()}
+                                  type="button"
+                                  onClick={() => handleIAECClick(opt.v)}
+                                  className="w-full flex justify-between p-3 border border-zinc-200 bg-white hover:bg-zinc-100 rounded-xl font-bold cursor-pointer"
+                                >
+                                  <span>{opt.l}</span>
+                                  {typeof opt.v === "number" && <span>{opt.v} pts</span>}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {triagemStep === 9 && (
+                    <div className="space-y-4 text-center p-4 bg-zinc-100 border border-zinc-900 rounded-2xl">
+                      <span className="text-[10px] font-black uppercase text-zinc-500 block">Classificação de Elegibilidade</span>
+                      <span className="text-3xl font-black text-zinc-900 block">{triagemForm.classificacaoFinal}</span>
+                      <p className="text-xs font-bold text-zinc-700">{triagemForm.servicoResponsavel} — {triagemForm.frequenciaRecomendada}</p>
+                      
+                      <button
+                        onClick={() => setViaUnicaStep(3)}
+                        className="w-full p-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 shadow-sm cursor-pointer"
+                      >
+                        Avançar para Módulo 3 (Escore EAD)
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between pt-2">
+                    <button
+                      onClick={() => setViaUnicaStep(1)}
+                      className="px-4 py-2 bg-zinc-100 text-zinc-700 rounded-xl font-bold cursor-pointer"
+                    >
+                      Voltar ao Módulo 1
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ETAPA 3: MÓDULO 3 (ESCORE EAD) */}
+              {viaUnicaStep === 3 && (
+                <form onSubmit={handleEadSubmit} className="space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
+                    <h4 className="font-extrabold text-zinc-900 text-sm">
+                      Módulo 3: Estratificação EAD (7 Domínios)
+                    </h4>
+                    <span className="text-[11px] font-bold text-zinc-500">
+                      Paciente: {pacienteNome || "Não identificado"}
+                    </span>
+                  </div>
+
+                  <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
+                    {EAD_DOMAINS.map((dom) => (
+                      <div key={dom.id} className="space-y-2 p-3 bg-zinc-50 border border-zinc-200 rounded-2xl">
+                        <h5 className="font-extrabold text-zinc-900 flex items-center gap-1.5">
+                          <span>{dom.icon}</span>
+                          {dom.title}
+                        </h5>
+                        <p className="text-[10px] text-zinc-500">{dom.note}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {dom.options.map((opt) => (
+                            <label
+                              key={opt.v}
+                              className={`flex items-start gap-2 p-2 border rounded-xl cursor-pointer ${
+                                eadForm.valores[dom.id as keyof typeof eadForm.valores] === opt.v
+                                  ? "border-zinc-900 bg-zinc-100 font-bold text-zinc-900"
+                                  : "border-zinc-200 hover:bg-white text-zinc-700"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`ead_${dom.id}`}
+                                checked={eadForm.valores[dom.id as keyof typeof eadForm.valores] === opt.v}
+                                onChange={() =>
+                                  setEadForm({
+                                    ...eadForm,
+                                    valores: { ...eadForm.valores, [dom.id]: opt.v },
+                                  })
+                                }
+                                className="accent-zinc-900 mt-0.5"
+                              />
+                              <span className="text-[11px] leading-tight">
+                                <strong className="text-zinc-900 mr-1">({opt.v} pt)</strong>
+                                {opt.t}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setViaUnicaStep(2)}
+                      className="px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 rounded-xl font-bold text-zinc-700 cursor-pointer"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-zinc-900 text-white rounded-xl font-bold hover:bg-zinc-800 shadow-sm cursor-pointer"
+                    >
+                      Calcular e Ver Resumo Consolidado
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* ETAPA 4: RESUMO CONSOLIDADO FINAL DA VIA ÚNICA */}
+              {viaUnicaStep === 4 && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-1">
+                    <h4 className="text-lg font-black text-zinc-900">
+                      Relatório Consolidado da Avaliação Domiciliar
+                    </h4>
+                    <p className="text-xs text-zinc-500">
+                      Resumo da triagem para prontuário e-SUS
+                    </p>
+                  </div>
+
+                  {/* Ficha Resumo */}
+                  <div className="p-6 bg-zinc-50 border border-zinc-900 rounded-3xl space-y-4 font-mono text-[11px]">
+                    <div className="flex justify-between items-start border-b border-zinc-200 pb-3">
+                      <div>
+                        <span className="font-bold text-zinc-900 text-sm block">{pacienteNome || "Paciente"}</span>
+                        <span className="text-zinc-500">Prontuário/CPF: {pacienteProntuario || "—"}</span>
+                      </div>
+                      <span className="px-3 py-1 bg-zinc-900 text-white font-extrabold text-[10px] rounded-full uppercase">
+                        Concluído
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Enfermagem:</span>
-                      <span className="font-bold">{eadResultado.freqEnf}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Médico:</span>
-                      <span className="font-bold">{eadResultado.freqMed}</span>
-                    </div>
+
+                    {/* Módulo 2 Result */}
+                    {triagemForm.classificacaoFinal && (
+                      <div className="space-y-1 border-b border-zinc-200 pb-3">
+                        <span className="font-extrabold text-zinc-900 block">MÓDULO 2 (ELEGIBILIDADE):</span>
+                        <p>Classificação: <strong>{triagemForm.classificacaoFinal}</strong> ({triagemForm.servicoResponsavel})</p>
+                        <p>Frequência Recomendada: {triagemForm.frequenciaRecomendada}</p>
+                      </div>
+                    )}
+
+                    {/* Módulo 3 Result */}
+                    {eadResultado && (
+                      <div className="space-y-1 border-b border-zinc-200 pb-3">
+                        <span className="font-extrabold text-zinc-900 block">MÓDULO 3 (ESCORE EAD):</span>
+                        <p>Pontuação Total: <strong>{eadResultado.scoreTotal}/21 pts</strong> ({eadResultado.classificacao})</p>
+                        <p>Periodicidade Médica: {eadResultado.freqMed}</p>
+                        <p>Periodicidade Enfermagem: {eadResultado.freqEnf}</p>
+                      </div>
+                    )}
+
+                    {/* Módulo 1 Result */}
+                    {acsResumo && (
+                      <div className="space-y-1">
+                        <span className="font-extrabold text-zinc-900 block">MÓDULO 1 (DADOS ACS):</span>
+                        <p className="whitespace-pre-wrap text-[10px] text-zinc-700">{acsResumo}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        const content = `AVALIAÇÃO DOMUS.AI VIA ÚNICA
+Paciente: ${pacienteNome} (Prontuário: ${pacienteProntuario})
+Triagem: ${triagemForm.classificacaoFinal} (${triagemForm.servicoResponsavel})
+Escore EAD: ${eadResultado?.scoreTotal}/21 pts - ${eadResultado?.classificacao}
+ACS: ${acsResumo}`;
+                        navigator.clipboard.writeText(content);
+                        alert("Resumo formatado copiado para a área de transferência!");
+                      }}
+                      className="flex-1 p-3 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 font-bold text-zinc-900 rounded-xl cursor-pointer"
+                    >
+                      Copiar Resumo e-SUS
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowViaUnicaModal(false);
+                        setPacienteNome("");
+                        setPacienteProntuario("");
+                      }}
+                      className="flex-1 p-3 bg-zinc-900 hover:bg-zinc-800 font-bold text-white rounded-xl shadow-sm cursor-pointer"
+                    >
+                      Concluir Atendimento
+                    </button>
                   </div>
                 </div>
               )}

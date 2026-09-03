@@ -1,99 +1,126 @@
 import React from 'react';
-import { BarChart3, Plus, Users } from 'lucide-react';
+import { LayoutDashboard, Play, FileText, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import logo from '../../../assets/logo.jpeg';
-import { Paciente } from '../types/triagens';
 
 interface SidebarProps {
-  pacientes: Paciente[];
-  setPacientes: React.Dispatch<React.SetStateAction<Paciente[]>>;
-  selectedPacienteId: string;
-  setSelectedPacienteId: React.Dispatch<React.SetStateAction<string>>;
-  setShowGuidelines: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-interface SidebarProps {
-  pacientes: Paciente[];
-  setPacientes: React.Dispatch<React.SetStateAction<Paciente[]>>;
-  selectedPacienteId: string;
-  setSelectedPacienteId: React.Dispatch<React.SetStateAction<string>>;
-  setShowGuidelines: React.Dispatch<React.SetStateAction<boolean>>;
+  showGuidelines: boolean;
+  setShowGuidelines: (show: boolean) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  onStartViaUnica: () => void;
+  onAccessFichas: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  pacientes,
-  setPacientes,
-  setSelectedPacienteId,
-  selectedPacienteId,
+  showGuidelines,
   setShowGuidelines,
+  isCollapsed,
+  setIsCollapsed,
+  onStartViaUnica,
+  onAccessFichas,
 }) => {
-  const handleAddPatient = () => {
-    const nome = prompt('Nome do novo paciente:');
-
-    if (nome) {
-      const newPac: Paciente = {
-        id: `PAC-${Math.floor(1000 + Math.random() * 9000)}`,
-        nome,
-        prontuario: `PRON-${Math.floor(100 + Math.random() * 900)}`,
-        dataCriacao: new Date().toISOString().split('T')[0],
-        statusProtocolo: 'Inicio',
-        historicoACS: [],
-        historicoEAD: [],
-        historicoTriagem: [],
-      };
-
-      setPacientes([newPac, ...pacientes]);
-      setSelectedPacienteId(newPac.id);
-    }
-  };
-
   return (
-    <aside className="w-64 bg-white border-r border-[#ffeef4] flex flex-col shrink-0">
-      <div className="p-6 border-b border-[#ffeef4] flex items-center gap-3">
-        <img
-          src={logo.src}
-          alt="Logo"
-          className="w-8 h-8 rounded-lg"
-        />
+    <aside
+      className={`bg-white border-r border-zinc-200 flex flex-col shrink-0 transition-all duration-300 relative ${
+        isCollapsed ? 'w-20' : 'w-64'
+      }`}
+    >
+      {/* Header com Logo e Botão de Retração */}
+      <div className="p-4 border-b border-zinc-200 flex items-center justify-between gap-3 h-20">
+        {isCollapsed ? (
+          <button
+            onClick={() => setIsCollapsed(false)}
+            title="Expandir Menu"
+            className="w-full flex items-center justify-center cursor-pointer group"
+          >
+            <img
+              src={logo.src}
+              alt="Logo Domus"
+              className="w-10 h-10 rounded-xl object-cover border border-zinc-200 group-hover:scale-105 transition-transform"
+            />
+          </button>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 overflow-hidden">
+              <img
+                src={logo.src}
+                alt="Logo Domus"
+                className="w-9 h-9 rounded-xl object-cover shrink-0 border border-zinc-200"
+              />
+              <div className="truncate">
+                <h1 className="text-lg font-black tracking-tight text-zinc-900 leading-tight">
+                  Domus
+                  <span className="text-zinc-500 font-normal">.ai</span>
+                </h1>
+                <p className="text-[9px] uppercase tracking-wider font-extrabold text-zinc-500 truncate">
+                  Triagem Clínica
+                </p>
+              </div>
+            </div>
 
-        <div>
-          <h1 className="text-lg font-black tracking-tight text-[#2d1822]">
-            Domus
-            <span className="text-[#ff75a0] font-normal">.ai</span>
-          </h1>
-
-          <p className="text-[9px] uppercase tracking-wider font-extrabold text-[#be80ff]">
-            Triagem Clínica
-          </p>
-        </div>
+            <button
+              onClick={() => setIsCollapsed(true)}
+              title="Recolher Menu"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          </>
+        )}
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      {/* Navegação */}
+      <nav className="flex-1 p-3 space-y-2">
+        {/* Botão de Destaque: Nova Triagem */}
         <button
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#fff0f6] text-[#ff75a0] font-bold text-sm transition-all"
+          onClick={onStartViaUnica}
+          title="Nova Triagem (Via Única)"
+          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-zinc-900 text-white font-bold text-sm hover:bg-zinc-800 transition-all shadow-sm ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
+        >
+          <Play size={18} className="fill-white shrink-0" />
+          {!isCollapsed && <span>Nova Triagem</span>}
+        </button>
+
+        {/* Botão Dashboard */}
+        <button
+          onClick={() => setShowGuidelines(false)}
+          title="Dashboard Principal"
+          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all font-bold text-sm ${
+            !showGuidelines
+              ? 'bg-zinc-100 text-zinc-900'
+              : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+          } ${isCollapsed ? 'justify-center' : ''}`}
+        >
+          <LayoutDashboard size={18} className="shrink-0" />
+          {!isCollapsed && <span>Dashboard</span>}
+        </button>
+
+        {/* Botão Acessar Fichas (Integração Backend) */}
+        <button
+          onClick={onAccessFichas}
+          title="Acessar Fichas de Pacientes (Integração Backend)"
+          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 font-bold text-sm transition-all ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
+        >
+          <FileText size={18} className="shrink-0" />
+          {!isCollapsed && <span>Acessar Fichas</span>}
+        </button>
+
+        {/* Botão Diretrizes SUS */}
+        <button
           onClick={() => setShowGuidelines(true)}
+          title="Diretrizes de Elegibilidade SUS"
+          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all font-bold text-sm ${
+            showGuidelines
+              ? 'bg-zinc-100 text-zinc-900'
+              : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+          } ${isCollapsed ? 'justify-center' : ''}`}
         >
-          <BarChart3 size={18} />
-          Dashboard
-        </button>
-
-        <button
-          onClick={handleAddPatient}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#fffbfc] text-gray-500 hover:text-[#ff75a0] font-bold text-sm transition-all"
-        >
-          <Plus size={18} />
-          Cadastrar Paciente
-        </button>
-
-        <button
-          onClick={() =>
-            document
-              .getElementById('pacientes-section')
-              ?.scrollIntoView({ behavior: 'smooth' })
-          }
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#fffbfc] text-gray-500 hover:text-[#ff75a0] font-bold text-sm transition-all"
-        >
-          <Users size={18} />
-          Acessar Fichas
+          <BookOpen size={18} className="shrink-0" />
+          {!isCollapsed && <span>Diretrizes SUS</span>}
         </button>
       </nav>
     </aside>

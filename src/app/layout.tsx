@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${outfit.variable} h-full antialiased`}>
-      <body className="font-sans min-h-full flex flex-col bg-[#fdf8fb] text-[#2d1822]">
+      <body className="font-sans min-h-full flex flex-col bg-[#f8fafc] text-[#09090b]">
         {children}
       </body>
     </html>

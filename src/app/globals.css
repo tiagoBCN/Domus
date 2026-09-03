@@ -18,21 +18,21 @@
 }
 
 :root {
-  --background: #fdf8fb; /* Creme rosado muito suave */
-  --foreground: #2d1822; /* Cereja escuro para alto contraste e legibilidade */
+  --background: #f8fafc; /* Cinza/Branco suave */
+  --foreground: #09090b; /* Preto neutro para excelente legibilidade */
   --card: #ffffff;
-  --card-foreground: #2d1822;
+  --card-foreground: #09090b;
   
-  /* Paleta Bubblegum Pop */
-  --primary: #ff75a0; /* Rosa chiclete vibrante */
-  --primary-hover: #ff5287;
-  --secondary: #7ce7ff; /* Azul algodão doce */
-  --secondary-hover: #4de0ff;
-  --accent: #d2a4ff; /* Lilás suave */
-  --accent-hover: #be80ff;
+  /* Paleta Preto/Cinza/Branco Minimalista */
+  --primary: #09090b; /* Preto */
+  --primary-hover: #27272a;
+  --secondary: #f4f4f5; /* Cinza claro */
+  --secondary-hover: #e4e4e7;
+  --accent: #71717a; /* Cinza médio */
+  --accent-hover: #52525b;
   
-  --border: #ffd6e8; /* Borda rosa clara */
-  --shadow-color: rgba(255, 117, 160, 0.08);
+  --border: #e4e4e7; /* Borda cinza clara */
+  --shadow-color: rgba(0, 0, 0, 0.05);
 }
 
 body {

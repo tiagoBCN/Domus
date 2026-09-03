@@ -138,3 +138,32 @@ export interface ACSData {
   alertaFinal: string;
   alertaQual: string;
 }
+
+export interface TriagemData {
+  a1: {
+    resolutiva: boolean | null;
+    razoavel: boolean | null;
+    adesao: boolean | null;
+    consentimento: boolean | null;
+    infra: boolean | null;
+  };
+  alta: { [key: string]: boolean };
+  media: { [key: string]: boolean };
+  e3: {
+    internacao: number | null;
+    urgencia: number | null;
+    tempo: number | null;
+    morador: number | null;
+    suporte: number | null;
+    crianca: string | null;
+    neuro: number | null;
+    banho: number | null;
+    alimentacao: number | null;
+    locomocao: number | null;
+    poli: number | null;
+  };
+  classificacaoFinal?: string;
+  servicoResponsavel?: string;
+  frequenciaRecomendada?: string;
+  pontosIAEC?: number;
+}
