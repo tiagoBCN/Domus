@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, Play, FileText, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
-import logo from '../../../assets/logo.jpeg';
+import logo from '../../../public/assets/logo.jpeg';
 
 interface SidebarProps {
   showGuidelines: boolean;
