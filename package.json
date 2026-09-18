@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "barbearia": "file:../../React/barbearia",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

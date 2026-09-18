@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { createClient } from "../../lib/supabase/client";
 
 
 // Ícones inline para evitar dependências extras, ajustados para o estilo Domus
@@ -93,39 +93,39 @@ const EyeIcon = ({ open }: { open: boolean }) =>
 
 export default function Login() {
   const router = useRouter();
-  const [celular, setCelular] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [celularFocused, setCelularFocused] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showVideo, setShowVideo] = useState(false);
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setLoading(true);
     try {
-      // Ajuste o endpoint se necessário, ex: /api/auth/login
-      const response = await fetch("http://localhost:3001/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ celular, senha: password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao realizar o login");
+
+      if (error) {
+        throw new Error(error.message);
       }
       
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("role", data.role);
+      // Token JWT is handled automatically by Supabase client (cookies)
+      // Save some basic data in local storage if needed by existing logic
+      if (data.session) {
+        localStorage.setItem("token", data.session.access_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
       
-      router.push("/"); // Ajustado para o dashboard em Domus
+      router.push("/dashboard"); 
     } catch (err: any) {
       setErrorMsg(err.message || "Erro de conexão com o servidor.");
     } finally {
@@ -151,14 +151,14 @@ export default function Login() {
           {/* Vídeo de fundo */}
           <video
             ref={videoRef}
+            autoPlay
             loop
             muted
             playsInline
             preload="auto"
-            className="absolute inset-0 w-full h-full object-cover opacity-75"
-          >
-            <source src="/assets/DomusAni.mp4" type="video/mp4" />
-          </video>
+            src="/assets/DomusAni.mp4"
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${showVideo ? "opacity-75" : "opacity-0"}`}
+          />
 
           {/* Conteúdo hero */}
           <div className="relative z-10 flex flex-col justify-center w-full px-16 text-left h-full">
@@ -233,32 +233,32 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Campo Celular */}
+              {/* Campo Email */}
               <div className="flex flex-col gap-2">
                 <label
-                  htmlFor="celular"
+                  htmlFor="email"
                   className="text-[0.875rem] text-[var(--foreground)] font-medium"
                 >
-                  Celular
+                  E-mail
                 </label>
                 <div className="relative text-[var(--accent)]">
                   <span
                     className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-200"
                     style={{
-                      color: celularFocused ? "var(--foreground)" : "var(--accent)",
+                      color: emailFocused ? "var(--foreground)" : "var(--accent)",
                     }}
                   >
                     <PhoneIcon />
                   </span>
                   <input
-                    id="celular"
-                    name="celular"
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    value={celular}
-                    onChange={(e) => setCelular(e.target.value)}
-                    onFocus={() => setCelularFocused(true)}
-                    onBlur={() => setCelularFocused(false)}
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="voce@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
                     required
                     className="input-field w-full h-[54px] pl-[48px] pr-4 text-[1rem] rounded-xl"
                   />
