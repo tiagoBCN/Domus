@@ -56,7 +56,7 @@ export async function apiPost<T = any>(endpoint: string, body: any): Promise<T> 
 // Pacientes
 export const getPacientes = () => apiGet('/api/pacientes');
 export const getPaciente = (id: string) => apiGet(`/api/pacientes/${id}`);
-export const criarPaciente = (data: { nome: string; prontuario?: string; idade?: number; statusProtocolo?: string }) =>
+export const criarPaciente = (data: { nome: string; cpf?: string; prontuario?: string; idade?: number; statusProtocolo?: string }) =>
   apiPost('/api/pacientes', data);
 
 // Ficha ACS

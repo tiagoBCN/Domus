@@ -9,6 +9,15 @@ import {
   X,
 } from "lucide-react";
 import { ACSData, EADData, Paciente, TriagemData } from "../../types/triagens";
+import { z } from "zod";
+import { criarPaciente, salvarFichaACS, salvarTriagem, salvarScoreEAD } from "../../../services/api";
+
+const acsSchema = z.object({
+  paciente: z.string().min(1, "Nome do paciente é obrigatório"),
+  acsNome: z.string().min(1, "Nome do ACS é obrigatório"),
+  mobilidade: z.string().min(1, "Mobilidade é obrigatória"),
+  alertaFinal: z.string().optional(),
+});
 
 
 interface IAECOption {
@@ -568,7 +577,12 @@ export default function Page() {
   const [showViaUnicaModal, setShowViaUnicaModal] = useState<boolean>(false);
   const [viaUnicaStep, setViaUnicaStep] = useState<number>(0);
   const [pacienteNome, setPacienteNome] = useState<string>("");
+  const [pacienteCpf, setPacienteCpf] = useState<string>("");
   const [pacienteProntuario, setPacienteProntuario] = useState<string>("");
+  const [pacienteIdade, setPacienteIdade] = useState<string>("");
+  const [pacienteStatusProtocolo, setPacienteStatusProtocolo] = useState<string>("");
+  const [refreshList, setRefreshList] = useState<number>(0);
+  const [pacienteIdSessao, setPacienteIdSessao] = useState<string | null>(null);
 
   const [lastSessionData, setLastSessionData] = useState<{
     pacienteNome: string;
@@ -683,30 +697,71 @@ export default function Page() {
   };
 
   // --- SUBMISSIONS E LÓGICA DE TRIAGEM ---
-  const handleAcsSubmit = (e: React.FormEvent) => {
+  const handleAcsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nome = pacienteNome || acsForm.paciente;
-    if (!nome) return;
+    
+    const result = acsSchema.safeParse({ ...acsForm, paciente: nome });
+    if (!result.success) {
+      alert("Erro de validação: " + result.error.issues.map(e => e.message).join(", "));
+      return;
+    }
 
-    const obsText =
-      acsForm.observacoes.length > 0
-        ? acsForm.observacoes.join(", ")
-        : "Nenhuma";
-    const cuidadosText =
-      acsForm.cuidados.length > 0 ? acsForm.cuidados.join(", ") : "Nenhum";
+    try {
+      const pacienteRes = await criarPaciente({ 
+        nome, 
+        cpf: pacienteCpf,
+        prontuario: pacienteProntuario,
+        idade: pacienteIdade ? Number(pacienteIdade) : undefined,
+        statusProtocolo: pacienteStatusProtocolo 
+      });
+      const pacienteId = pacienteRes.id;
+      setPacienteIdSessao(pacienteId); // Guarda para usar na Triagem e EAD
+      
+      await salvarFichaACS({
+        pacienteId,
+        acsNome: acsForm.acsNome,
+        mobilidade: acsForm.mobilidade,
+        abvd: acsForm.abvd,
+        intercorrencias: acsForm.intercorrencias,
+        sintomas: acsForm.sintomas,
+        sintomasFreq: acsForm.sintomasFreq,
+        cuidados: acsForm.cuidados,
+        cuidadosOutro: acsForm.cuidadosOutro,
+        dispositivos: acsForm.dispositivos,
+        medAlterado: acsForm.medAlterado,
+        medQual: acsForm.medQual,
+        cuidadorNome: acsForm.cuidadorNome,
+        cuidadorStatus: acsForm.cuidadorStatus,
+        pioraRecente: acsForm.pioraRecente,
+        necessidade: acsForm.necessidade,
+        observacoes: acsForm.observacoes,
+        alertaFinal: acsForm.alertaFinal,
+        alertaQual: acsForm.alertaQual,
+      });
 
-    const resumo = `Paciente: ${nome} | Data: ${acsForm.dataColeta} | ACS: ${acsForm.acsNome}
-Mobilidade: ${acsForm.mobilidade}
-Intercorrências: ${acsForm.intercorrencias.naoTeve ? "Não" : `UPA: ${acsForm.intercorrencias.upaVezes}x, Hosp: ${acsForm.intercorrencias.hospVezes}x`}
-Sintomas: ${acsForm.sintomas || "Nenhum"} (${acsForm.sintomasFreq || "—"})
-Cuidados: ${cuidadosText} ${acsForm.cuidadosOutro ? `(${acsForm.cuidadosOutro})` : ""}
-Dispositivos: ${acsForm.dispositivos || "Nenhum"}
-Medicamento Alterado: ${acsForm.medAlterado} ${acsForm.medQual ? `(${acsForm.medQual})` : ""}
-Cuidador: ${acsForm.cuidadorNome} (${acsForm.cuidadorStatus})
-Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.alertaQual})` : ""}`;
+      const obsText =
+        acsForm.observacoes.length > 0
+          ? acsForm.observacoes.join(", ")
+          : "Nenhuma";
+      const cuidadosText =
+        acsForm.cuidados.length > 0 ? acsForm.cuidados.join(", ") : "Nenhum";
 
-    setAcsResumo(resumo);
-    setViaUnicaStep(2); // Avança para Módulo 2
+      const resumo = `Paciente: ${nome} | Data: ${acsForm.dataColeta} | ACS: ${acsForm.acsNome}
+  Mobilidade: ${acsForm.mobilidade}
+  Intercorrências: ${acsForm.intercorrencias.naoTeve ? "Não" : `UPA: ${acsForm.intercorrencias.upaVezes}x, Hosp: ${acsForm.intercorrencias.hospVezes}x`}
+  Sintomas: ${acsForm.sintomas || "Nenhum"} (${acsForm.sintomasFreq || "—"})
+  Cuidados: ${cuidadosText} ${acsForm.cuidadosOutro ? `(${acsForm.cuidadosOutro})` : ""}
+  Dispositivos: ${acsForm.dispositivos || "Nenhum"}
+  Medicamento Alterado: ${acsForm.medAlterado} ${acsForm.medQual ? `(${acsForm.medQual})` : ""}
+  Cuidador: ${acsForm.cuidadorNome} (${acsForm.cuidadorStatus})
+  Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.alertaQual})` : ""}`;
+
+      setAcsResumo(resumo);
+      setViaUnicaStep(2); // Avança para Módulo 2
+    } catch (err: any) {
+      alert("Erro ao salvar no banco de dados: " + err.message);
+    }
   };
 
   const handleTriagemStart = () => {
@@ -773,16 +828,27 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
     }
   };
 
+  const salvarTriagemNoBanco = async (form: TriagemData) => {
+    if (!pacienteIdSessao) return;
+    try {
+      await salvarTriagem({ pacienteId: pacienteIdSessao, ...form });
+    } catch (err: any) {
+      console.error("Erro ao salvar triagem:", err.message);
+    }
+  };
+
   const handleAltaSubmit = () => {
     const hasAlta = ALTA_ITEMS.some((item) => !!triagemForm.alta[item.key]);
     if (hasAlta) {
-      setTriagemForm((prev) => ({
-        ...prev,
+      const updated = {
+        ...triagemForm,
         classificacaoFinal: "AD3",
         servicoResponsavel: IAEC_SERVICE.AD3.nome,
         frequenciaRecomendada: IAEC_SERVICE.AD3.freq,
         pontosIAEC: undefined,
-      }));
+      };
+      setTriagemForm(updated);
+      salvarTriagemNoBanco(updated);
       setTriagemStep(9);
       return;
     }
@@ -792,13 +858,15 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
   const handleMediaSubmit = () => {
     const hasMedia = MEDIA_ITEMS.some((item) => !!triagemForm.media[item.key]);
     if (hasMedia) {
-      setTriagemForm((prev) => ({
-        ...prev,
+      const updated = {
+        ...triagemForm,
         classificacaoFinal: "AD2",
         servicoResponsavel: IAEC_SERVICE.AD2.nome,
         frequenciaRecomendada: IAEC_SERVICE.AD2.freq,
         pontosIAEC: undefined,
-      }));
+      };
+      setTriagemForm(updated);
+      salvarTriagemNoBanco(updated);
       setTriagemStep(9);
       return;
     }
@@ -858,14 +926,16 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
     const classificacao = classifyIAEC(total);
     const service = IAEC_SERVICE[classificacao];
 
-    setTriagemForm((prev) => ({
-      ...prev,
+    const updatedTriagem = {
+      ...triagemForm,
       e3: nextE3,
       classificacaoFinal: classificacao,
       servicoResponsavel: service.nome,
       frequenciaRecomendada: service.freq,
       pontosIAEC: total,
-    }));
+    };
+    setTriagemForm(updatedTriagem);
+    salvarTriagemNoBanco(updatedTriagem);
     setTriagemStep(9);
   };
 
@@ -918,6 +988,24 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
 
     setEadResultado(resultado);
     setViaUnicaStep(4); // Avança para o Resumo Consolidado
+
+    // Salva EAD no banco
+    if (pacienteIdSessao) {
+      salvarScoreEAD({
+        pacienteId: pacienteIdSessao,
+        statusProtocolo: resultado.statusProtocolo,
+        origemDemanda: resultado.origemDemanda,
+        profissional: resultado.profissional,
+        pontuacaoAnterior: resultado.pontuacaoAnterior || null,
+        valores: resultado.valores,
+        scoreTotal: resultado.scoreTotal,
+        classificacao: resultado.classificacao,
+        freqGeral: resultado.freqGeral,
+        freqACS: resultado.freqACS,
+        freqEnf: resultado.freqEnf,
+        freqMed: resultado.freqMed,
+      }).catch((err: any) => console.error("Erro ao salvar EAD:", err.message));
+    }
 
     // Salva na sessão atual
     setLastSessionData({
@@ -990,6 +1078,7 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
               onStartViaUnica={handleStartViaUnica}
               onOpenModule={handleOpenModule}
               lastSessionData={lastSessionData}
+              refreshTrigger={refreshList}
             />
           )}
         </main>
@@ -1013,7 +1102,10 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowViaUnicaModal(false)}
+                  onClick={() => {
+                    setShowViaUnicaModal(false);
+                    setRefreshList(prev => prev + 1);
+                  }}
                   className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-200 transition-colors"
                 >
                   <X size={20} />
@@ -1084,15 +1176,59 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
 
                     <div>
                       <label className="text-[11px] font-extrabold uppercase text-zinc-700 block mb-1">
-                        Prontuário / Documento
+                        Prontuário
                       </label>
                       <input
                         type="text"
                         value={pacienteProntuario}
                         onChange={(e) => setPacienteProntuario(e.target.value)}
-                        placeholder="Ex: PRON-84920 / CPF"
+                        placeholder="Ex: PRON-84920"
                         className="w-full p-3 border border-zinc-300 rounded-xl text-sm focus:border-zinc-900 focus:outline-none"
                       />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-extrabold uppercase text-zinc-700 block mb-1">
+                        CPF
+                      </label>
+                      <input
+                        type="text"
+                        value={pacienteCpf}
+                        onChange={(e) => setPacienteCpf(e.target.value)}
+                        placeholder="Ex: 000.000.000-00"
+                        className="w-full p-3 border border-zinc-300 rounded-xl text-sm focus:border-zinc-900 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[11px] font-extrabold uppercase text-zinc-700 block mb-1">
+                          Idade
+                        </label>
+                        <input
+                          type="number"
+                          value={pacienteIdade}
+                          onChange={(e) => setPacienteIdade(e.target.value)}
+                          placeholder="Ex: 65"
+                          className="w-full p-3 border border-zinc-300 rounded-xl text-sm focus:border-zinc-900 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-extrabold uppercase text-zinc-700 block mb-1">
+                          Status Atual
+                        </label>
+                        <select
+                          value={pacienteStatusProtocolo}
+                          onChange={(e) => setPacienteStatusProtocolo(e.target.value)}
+                          className="w-full p-3 border border-zinc-300 rounded-xl text-sm focus:border-zinc-900 focus:outline-none"
+                        >
+                          <option value="">Selecione...</option>
+                          <option value="AD1 (Atenção Básica)">AD1 (Atenção Básica)</option>
+                          <option value="AD2 (SAD / EMAD)">AD2 (SAD / EMAD)</option>
+                          <option value="AD3 (SAD / EMAD)">AD3 (SAD / EMAD)</option>
+                        </select>
+                      </div>
                     </div>
 
                     <button
@@ -1193,7 +1329,7 @@ Alerta Urgência: ${acsForm.alertaFinal} ${acsForm.alertaQual ? `(${acsForm.aler
                     </div>
                   </div>
 
-                  <div className="p-3 bg-red-50 text-red-950 rounded-xl space-y-2">
+                  <div className="p-3 bg-gray-50 text-red-950 rounded-xl space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="font-extrabold text-red-700">
                         🚨 Urgência sinalizada?
@@ -1551,7 +1687,11 @@ ACS: ${acsResumo}`;
                     <button
                       onClick={() => {
                         setShowViaUnicaModal(false);
+                        setRefreshList(prev => prev + 1);
                         setPacienteNome("");
+                        setPacienteCpf("");
+                        setPacienteIdade("");
+                        setPacienteStatusProtocolo("");
                         setPacienteProntuario("");
                       }}
                       className="flex-1 p-3 bg-zinc-900 hover:bg-zinc-800 font-bold text-white rounded-xl shadow-sm cursor-pointer"

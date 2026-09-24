@@ -35,6 +35,7 @@ export interface HistoricoACS {
 export interface Paciente {
   id: string;
   nome: string;
+  cpf?: string;
   prontuario?: string;
   idade?: number;
   dataCriacao?: string;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ClipboardList, Search, BarChart3, Play, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { EADData, HistoricoACS, TriagemData } from '../types/triagens';
+import { FichasList } from './FichasList';
 
 interface DashboardProps {
   onStartViaUnica: () => void;
@@ -12,12 +13,14 @@ interface DashboardProps {
     triagemData?: TriagemData;
     eadData?: EADData;
   } | null;
+  refreshTrigger?: number;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   onStartViaUnica,
   onOpenModule,
   lastSessionData,
+  refreshTrigger,
 }) => {
   return (
     <div className="space-y-8">
@@ -142,7 +145,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
-      {/* Seção de Fichas de Pacientes (Pronta para Integração Backend) */}
       <div className="bg-white border border-zinc-200 rounded-3xl p-6 space-y-4" id="pacientes-section">
         <div className="flex justify-between items-center pb-3 border-b border-zinc-200">
           <div className="flex items-center gap-2">
@@ -153,15 +155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        <div className="p-8 text-center bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 space-y-2">
-          <FileText size={32} className="mx-auto text-zinc-400" />
-          <h4 className="text-sm font-extrabold text-zinc-800">
-            Módulo de Fichas e Integração de Banco de Dados
-          </h4>
-          <p className="text-xs text-zinc-500 max-w-lg mx-auto leading-relaxed">
-            As avaliações efetuadas na Via Única são formatadas para o e-SUS. Esta área receberá a busca e sincronização direta com a API do servidor backend.
-          </p>
-        </div>
+        <FichasList refreshTrigger={refreshTrigger} />
       </div>
     </div>
   );
